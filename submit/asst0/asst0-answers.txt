@@ -1,0 +1,118 @@
+ASSIGNMENT 0 ANSWERS
+
+STEP 4 (Command outputs)
+
+1. sys161 output:
+
+    sys161: System/161 release 2.0.3, compiled Aug 10 2015 13:31:07
+
+    OS/161 base system version 1.99.08
+    Copyright (c) 2000, 2001-2005, 2008-2011, 2013, 2014
+        President and Fellows of Harvard College. All rights reserved.
+
+    Put-your-group-name-here's system version 0 (DUMBVM #1)
+
+    292k physical memory available
+    Device probe...
+    lamebus0 (system main bus)
+    emu0 at lamebus0
+    ltrace0 at lamebus0
+    ltimer0 at lamebus0
+    beep0 at ltimer0
+    rtclock0 at ltimer0
+    lrandom0 at lamebus0
+    random0 at lrandom0
+    lhd0 at lamebus0
+    lhd1 at lamebus0
+    lser0 at lamebus0
+    con0 at lser0
+
+    cpu0: MIPS/161 (System/161 2.x) features 0x0
+    OS/161 kernel [? for menu]:
+
+2. git log output:
+
+    commit 352e1220f5331316fb9a2ec84dc96d217500533d
+    Author: Yong Chie Gui <yongchiegui@gmail.com>
+    Date:   Wed Jan 6 20:18:18 2016 -0800
+
+        Initial commit of os161 for CPEN331
+
+
+   git tag output:
+    
+    asst0-start
+
+
+
+STEP 5 (Code reading questions)
+
+1. In class you were introduced to the mechanisms used to transfer control between user processes and the operating system. Tell us where we can find the first line of OS/161 code that is executed when a trap occurs. Then tell us where control gets transferred to from that point. What about an interrupt? How does that differ?
+
+    The first line of code that is executed when a trap occurs can be found in /src/kern/.../exception-mips1.S. In this assembly file, the line jal mips_trap then calls the mips_trap function inside trap.c, which then turns interrupts off (since we are in an interrupt already), and transfers control to lamebus_machdep.c by calling the mainbus_interrupt function. Inside this function, we try to find out which kind of trap we are dealing with, and calls the respective function to handle it.
+
+    After the trap is handled, the mips_usermode function inside trap.c jumps into the exception return code by calling asm_usermode to jump to the return code inside exception-mips1.S.
+
+    Note that this isn't different for interrupts, as they are also traps.
+
+2. Making a system call, such as write, ultimately leads to a trap. Find the code in OS/161 that invokes system calls from user programs and causes traps. In which file and on which lines did you find this code?
+
+    Inside /src/userland/.../syscalls-mips.S, we see the system call being made at line 84. The syscall function inside /src/kern/.../syscall/syscall.c (lines 78 - 147) then extracts the system call number from the trapframe strcut's tf_v0 field, and handle the case accordingly in the following switch statement.
+
+3. Why do you suppose there are libc functions in the "common" part of the source tree (common/libc) as well as in userland/lib/libc?
+
+    To provides C functions that both the user and the kernel can use
+
+4. Name two things that configure configures. What might invalidate that configuration and make you need/want to rerun it?
+
+    Two things it configures are the target hardware platform and machine type:
+        - PLATFORM='sys161'
+        - MACHINE='mips'
+    Other things it configures include the optimize/debug flag, and the location of the root of the installed os161 system:
+        - DEBUG='-O2'
+        - OSTREE='$(HOME)/os161/root'
+    The lines of code were found in /src/configure
+
+    We might want to rerun it if we want to use different values for the above fields. For example, if we want to run it on a different system/hardware, we might want to change the PLATFORM and MACHINE fields.
+
+5. What are some of the details which would make a function "machine dependent"? Why might it be important to maintain this separation, instead of just putting all of the code in one function?
+
+    Code that makes use of registers are machine dependent, as the registers may differ from machine to machine. Assembly code often does this. It is important to maintain the separation to make it more organized (separation of concerns).
+
+6: How large is a trapframe? Why?
+
+    The trapframe struct inside trapframe.h contains 37 uint32_t fields. Each uint32_t field is 32 bits -> 4 bytes, so each trapframe is 148 bytes long. It is this size because it needs to store information for 37 registers.
+
+7: Under what circumstances should you re-run the kern/conf/config script?
+    
+    If we changed some of the configuration options (similar to the case for question 4 above).
+
+8: Under what circumstances should you run bmake depend in kern/compile/DUMBVM?
+
+    If we changed any dependencies in our code, i.e. changed/added/removed any of the #include statements.
+
+9: Under what circumstances should you run bmake or bmake install in kern/compile/DUMBVM?
+
+    If we changed/added/removed any source code.
+
+10: When you booted your kernel, you found that there were several commands that you could issue to experiment with it. Explain exactly where and what you would have to do to add a command that printed out, "Hello world!"
+
+    - Add a function inside menu.c for the respective command (e.g. "static int cmd_helloworld(int nargs, char**args)" )
+    - Add a corresponding entry to cmdtable (e.g. "{ "hw", cmd_helloworld }" ). 
+    - Add to the opsmenu array (e.g. "[hw] Print hello world") to display it on the os161 user interface. 
+
+11: Why do we need to include these in your OS/161 distribution? Why can't you just use the standard utilities that are present on the machine on which you're working?
+
+    The standard utlities may not have the right settings/configurations to work on all machines.
+
+12: When a user program exits, what is done with the program's return value?
+
+   The return value is stored inside the trapframe's tf_v0 field in syscall.c, lines 127 and 132 (which stores it in register v0).
+    
+13: Imagine that you wanted to add a new system call. List all the places that you would need to modify/add code. Then review your answers to questions 7-9 and note which of those actions you need to take in order to test the new system call. 
+
+    - Define another value in /include/kern/syscall.h for the call number
+    - Define another function in /include/syscall.h (note that this is different than the syscall.h file mentioned in the previous point), and implement it in another file
+    - Add the corresponding case to the switch statement in syscall.c (lines 102 - 118) to call the implemented function if required
+
+    We would have to run "bmake depend", "bmake", and "bmake install" in kern/compile/DUMBVM
