@@ -1,0 +1,67 @@
+ASSIGNMENT 1 ANSWERS
+
+Next, you will demonstrate that you know how to use GDB by answering a concrete question about OS161 execution and putting your answers in the file asst1-answers.txt in the submit/asst1 directory in the clone of your git repository. Rather than finding answers by reading through the source code, obtain them by running the debugger. When possible, copy the output of the debugger that helped you find the answer to each question into your submission file.  
+
+1. What is the name of the very first function that executes when OS161 starts up? 
+
+	It executes the __start function inside start.S. Debugger output:
+		__start () at ../../arch/sys161/main/start.S:54
+
+2. What is the very first assembly instruction that executes? 
+	
+	"addiu sp, sp, -24" at line 54 of ../../arch/sys161/main/start.S
+
+3. Set the breakpoints in the kernel function that shows the menu and in the kernel main function. Now tell GDB to display all the breakpoints that were set and copy the output to your submit file. 
+	
+	Num     Type           Disp Enb Address    What
+	1       breakpoint     keep y   0x80014a0c in menu at ../../main/menu.c:697
+	2       breakpoint     keep y   0x800139e4 in kmain at ../../main/main.c:211
+
+4. Briefly describe what happens between the beginning of the execution and the invocation of the kernel main function. 
+
+	Upon execution, we perform some lines of assembly code to set up the boot stack and memory map. After that, we invoke the kernel main function with the line "jal kmain" at line 215 of start.S. Then we perform early initialization by running the boot function, followed by executing the menu.
+
+5. What is the assembly language instruction that calls the kernel main function? 
+
+	"jal kmain" at line 215 of start.S
+
+6. Step through the boot() code to find out what functions are called during early initialization. Paste the gdb output that shows you what these functions are.
+
+	After going into the text user interface and stepping into the boot function, we see the following lines of code in main.c:
+
+	/* Early initialization. */
+	ram_bootstrap();
+	proc_bootstrap();
+	thread_bootstrap();
+	hardclock_bootstrap();
+	vfs_bootstrap();
+	kheap_nextgeneration();
+
+7. Set a breakpoint in thread_bootstrap(). Once you hit that breakpoint, at the very first line of that function, attempt to print the contents of the *bootcpu variable. Copy the output into the submit file. 
+
+	Cannot access memory at address 0x80000
+
+8. Now, step through that function until after the line that says 'bootcpu = cpu_create(0)'. Now print the content of *bootcpu and paste the output. 
+
+	$1 = {c_self = 0x8003af00, c_number = 0, c_hardware_number = 0, c_curthread = 0x8003bf80, c_zombies = {tl_head = {tln_prev = 0x0, 
+	      tln_next = 0x8003af1c, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af10, tln_next = 0x0, tln_self = 0x0}, tl_count = 0}, 
+	  c_hardclocks = 0, c_spinlocks = 0, c_isidle = false, c_runqueue = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af44, 
+	      tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af38, tln_next = 0x0, tln_self = 0x0}, tl_count = 0}, c_runqueue_lock = {
+	    splk_lock = 0, splk_holder = 0x0}, c_ipi_pending = 0, c_shootdown = {{ts_placeholder = 0} <repeats 16 times>}, 
+	  c_numshootdown = 0, c_ipi_lock = {splk_lock = 0, splk_holder = 0x0}}
+
+Now let's learn how to use some of the very useful gdb macros provided with OS161. Copy the contents of kern/gdbscripts/array into your .gdbinit file. If you don't know where .gdbinit is and how to make sure that gdb accepts its commands, make sure that you mind the answer in the GDB tutorial.  Read through the macros that you just copied and find the one that helps you print the contents of the array containing all the CPUs. 
+
+9. Print the allcpus array before the boot() function is executed. Paste the output. 
+	
+	0 cpus
+
+10. Print again the same array after the boot() function is executed. Paste the output.  
+	1 cpus
+	cpu 0:
+	$1 = {c_self = 0x8003af00, c_number = 0, c_hardware_number = 0, c_curthread = 0x8003bf80, c_zombies = {tl_head = {tln_prev = 0x0, 
+	      tln_next = 0x8003af1c, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af10, tln_next = 0x0, tln_self = 0x0}, tl_count = 0}, 
+	  c_hardclocks = 1, c_spinlocks = 0, c_isidle = false, c_runqueue = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af44, 
+	      tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af38, tln_next = 0x0, tln_self = 0x0}, tl_count = 0}, c_runqueue_lock = {
+	    splk_lock = 0, splk_holder = 0x0}, c_ipi_pending = 0, c_shootdown = {{ts_placeholder = 0} <repeats 16 times>}, 
+	  c_numshootdown = 0, c_ipi_lock = {splk_lock = 0, splk_holder = 0x0}}
