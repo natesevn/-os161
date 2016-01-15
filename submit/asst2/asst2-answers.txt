@@ -1,0 +1,57 @@
+ASSIGNMENT 2 ANSWERS
+
+1) What happens to a thread when it exits (i.e., calls thread_exit())? What about when it sleeps?
+	
+	thread_exit():
+	- It gets detached from the process with the proc_remthread() function
+	- Stack guard band for the thread is checked for overflow. If there is an overflow, an assert statement will go off
+	- Interrupts are turned off
+	- Thread state is switched to zombie (exited but not yet deleted)
+
+	wchan_sleep():
+	- CPU is yielded to another process, and thread goes to sleep on wait channel wc
+	- Procesor picks up another thread
+
+2) What function(s) handle(s) a context switch?
+
+	- The thread_switch() function, which calls some low level assembly code in switchframe_switch()
+
+3) What does it mean for a thread to be in each of the possible thread states?
+
+	- S_RUN: thread is running
+	- S_READY: thread is ready to run
+	- S_SLEEP: thread is sleeping
+	- S_ZOMBIE: thread is exited but not yet deleted
+	
+4) What does it mean to turn interrupts off? How is this accomplished? Why is it important to turn off interrupts in the thread subsystem code?
+
+	- It means that no other threads can start using the cpu through a context switch.
+	- It is done by calling the splhigh() function, which after a couple more function calls, will in turn call cpu_irqoff(). 
+	- It is important to turn interrupts off in thread subsystem code to prevent context switching from happening in the middle of the code (would be especially bad if we get interrupted during an interrupt).
+	
+5) What happens when a thread wakes up another thread? How does a sleeping thread get to run again?
+
+	- A thread wakes up another thread by calling wchan_wakeone(), which calls threadlist_remhead() grab a thread from the waiting channel.
+	- The sleeping thread then gets to run again by thread_make_runnable(), which puts it on the run queue.
+	
+6) What function(s) choose(s) the next thread to run?
+
+	- schedule() reshuffles the run queue
+	- thread_switch() then can perform context switching and run the threads
+
+7) How does it (do they) pick the next thread?
+	
+	- schedule() will reshuffle by job priority, but at the moment threads run in a round-robin fashion
+	- thread_switch() then picks the first thread in the run queue
+
+8) What role does the hardware timer play in scheduling? What hardware independent function is called on a timer interrupt?
+
+	- hardclock() is called periodically, which in turn calls schedule() HZ times a second
+	
+9) Describe how wchan_sleep() and wchan_wakeone() are used to implement semaphores.
+
+	- wchan_sleep() is called in the P() function in synch.c
+	- wchan_wakeone is called in the V() function in synch.c
+	- They P() and V() functions work together to increment/decrement the count on the semaphore: P() waits for semaphore count to become greater than 0, then decrements it, while V() increments the semaphore value
+
+10) How does the implementation of wchan ensure that a thread never misses a wakeup signal: that another thread cannot attempt to awaken the first thread just as it is preparing to sleep, but before it is actually placed into the sleep queue?
