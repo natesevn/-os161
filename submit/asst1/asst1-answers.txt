@@ -19,7 +19,7 @@ Next, you will demonstrate that you know how to use GDB by answering a concrete 
 
 4. Briefly describe what happens between the beginning of the execution and the invocation of the kernel main function. 
 
-	Upon execution, we perform some lines of assembly code to set up the boot stack and memory map. After that, we invoke the kernel main function with the line "jal kmain" at line 215 of start.S. Then we perform early initialization by running the boot function, followed by executing the menu.
+	Upon execution, we perform some lines of assembly code to set up the boot stack and memory map. In addition, we set up the status register, load the CPU number into the CONTEXT register, and load the GP register. After that, we invoke the kernel main function with the line "jal kmain" at line 215 of start.S. Then we perform early initialization by running the boot function, followed by executing the menu.
 
 5. What is the assembly language instruction that calls the kernel main function? 
 
