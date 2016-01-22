@@ -1,6 +1,6 @@
-/*
+/* 
  * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
- *	The President and Fellows of Harvard College.
+ *  The President and Fellows of Harvard College.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 
 
 #include <spinlock.h>
+#include <thread.h>
 
 /*
  * Dijkstra-style semaphore.
@@ -44,10 +45,10 @@
  * internally.
  */
 struct semaphore {
-        char *sem_name;
-	struct wchan *sem_wchan;
-	struct spinlock sem_lock;
-        volatile unsigned sem_count;
+    char *sem_name;
+    struct wchan *sem_wchan;
+    struct spinlock sem_lock;
+    volatile unsigned sem_count;
 };
 
 struct semaphore *sem_create(const char *name, unsigned initial_count);
@@ -73,9 +74,11 @@ void V(struct semaphore *);
  * (should be) made internally.
  */
 struct lock {
-        char *lk_name;
-        // add what you need here
-        // (don't forget to mark things volatile as needed)
+    char *lk_name;
+    struct wchan *lk_wchan;
+    struct spinlock lk_lock;
+    struct thread *lk_thread;
+    volatile int lk_held;
 };
 
 struct lock *lock_create(const char *name);
@@ -112,9 +115,9 @@ bool lock_do_i_hold(struct lock *);
  */
 
 struct cv {
-        char *cv_name;
-        // add what you need here
-        // (don't forget to mark things volatile as needed)
+    char *cv_name;
+    struct spinlock cv_lock;
+    struct wchan *cv_wchan;
 };
 
 struct cv *cv_create(const char *name);
@@ -139,3 +142,4 @@ void cv_broadcast(struct cv *cv, struct lock *lock);
 
 
 #endif /* _SYNCH_H_ */
+

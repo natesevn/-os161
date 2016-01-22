@@ -55,3 +55,5 @@ ASSIGNMENT 2 ANSWERS
 	- They P() and V() functions work together to increment/decrement the count on the semaphore: P() waits for semaphore count to become greater than 0, then decrements it, while V() increments the semaphore value
 
 10) How does the implementation of wchan ensure that a thread never misses a wakeup signal: that another thread cannot attempt to awaken the first thread just as it is preparing to sleep, but before it is actually placed into the sleep queue?
+
+
