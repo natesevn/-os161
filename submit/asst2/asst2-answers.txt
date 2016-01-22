@@ -56,4 +56,4 @@ ASSIGNMENT 2 ANSWERS
 
 10) How does the implementation of wchan ensure that a thread never misses a wakeup signal: that another thread cannot attempt to awaken the first thread just as it is preparing to sleep, but before it is actually placed into the sleep queue?
 
-
+	- At the end of wchan_sleep, we acquire the required spinlock, which prevents other threads from waking it up
