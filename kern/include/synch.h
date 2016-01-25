@@ -1,3 +1,4 @@
+
 /* 
  * Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
  *  The President and Fellows of Harvard College.
@@ -45,10 +46,10 @@
  * internally.
  */
 struct semaphore {
-    char *sem_name;
-    struct wchan *sem_wchan;
-    struct spinlock sem_lock;
-    volatile unsigned sem_count;
+        char *sem_name;
+	struct wchan *sem_wchan;
+	struct spinlock sem_lock;
+        volatile unsigned sem_count;
 };
 
 struct semaphore *sem_create(const char *name, unsigned initial_count);
@@ -142,4 +143,3 @@ void cv_broadcast(struct cv *cv, struct lock *lock);
 
 
 #endif /* _SYNCH_H_ */
-
