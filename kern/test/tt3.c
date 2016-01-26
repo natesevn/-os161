@@ -36,10 +36,6 @@
 #include <thread.h>
 #include <synch.h>
 #include <test.h>
-
-/* dimension of matrices (cannot be too large or will overflow stack) */
-
-#define DIM 70
 #include "opt-synchprobs.h"
 
 /* dimension of matrices (cannot be too large or will overflow stack) */
