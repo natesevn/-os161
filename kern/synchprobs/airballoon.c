@@ -49,9 +49,10 @@ struct semaphore done_sem;
  *  locking protocols and invariants:
  *      - whenever a thread does something with a rope, it has to
  *          acquire the rope's lock first. After it's done, it releases
- *          the lock and decrements the ropes_left variable.
+ *          the lock and decrements the ropes_left variable (except for
+ *          flowerkiller, who does not decrement ropes_left).
  *      - threads know they are done if the ropes_left variable reaches
-            0, signifying that all ropes have been successfully severed.
+ *          0, signifying that all ropes have been successfully severed.
  *      - after the dandelion, marigold, and flowerkiller threads have
  *          finished, they call V on the done_sem semaphore, which is
  *          being P'd by the balloon thread. Once the balloon thread
@@ -78,7 +79,6 @@ dandelion(void *p, unsigned long arg)
         // Acquire the rope_lock and sever the rope
         // Then release the rope_lock
         bool rope_severed = false;
-
         lock_acquire(&rope_locks[balloon_hook_index]);
         if(ropes_to_stakes[balloon_hook_index] != -1) {
             kprintf("Dandelion severed rope %d\n", balloon_hook_index);
@@ -121,7 +121,7 @@ marigold(void *p, unsigned long arg)
             if(ropes_to_stakes[i] == ground_stake_index) {
                 lock_acquire(&rope_locks[i]);
 
-                // Double check if the rope has been cut
+                // Double check if the rope has been moved/cut
                 // while we were acquiring the rope lock
                 if(ropes_to_stakes[i] != ground_stake_index) {
                     lock_release(&rope_locks[i]);
@@ -208,7 +208,7 @@ balloon(void *p, unsigned long arg)
     kprintf("Balloon thread starting\n");
    
     // Making use of a semaphore to make sure that the escape
-    // statement is printed after the other threads finish
+    // statement is printed only after the other threads finish
     int num_threads = 3;
     for(num_threads = 3; num_threads > 0; num_threads--) {
         P(&done_sem);
