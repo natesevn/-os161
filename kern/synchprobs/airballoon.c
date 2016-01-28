@@ -16,6 +16,7 @@ int ropes_to_stakes[NROPES];
 // Synchronization primitives
 struct semaphore rope_sem; 
 struct lock rope_locks[NROPES];
+struct lock ropes_left_lock;
 struct semaphore done_sem;
 
 /*
@@ -29,7 +30,7 @@ struct semaphore done_sem;
  *  data structure: an array of ropes (integers)
  *      - the indices represent the rope and balloon hook number
  *          (note that these are the same because Lord FlowerKiller
- *          never changes the ropes on the balloon hook's side.
+ *          never changes the ropes on the balloon hook's side.)
  *      - the values in the array represent the stakes that the
  *          ropes are attached to.
  *
@@ -39,6 +40,7 @@ struct semaphore done_sem;
  *          balloon, flowerkiller).
  *      - lock rope_locks[NROPES]: an array of locks to protect
  *          the ropes.
+ *      - lock ropes_left_lock: a lock to protect the ropes_left variable
  *      - semaphore done_sem: a semaphore used by the balloon thread
  *          to keep track of the other three threads (dandelion,
  *          marigold, flowerkiller). It is just used to make sure
@@ -48,9 +50,9 @@ struct semaphore done_sem;
  * 
  *  locking protocols and invariants:
  *      - whenever a thread does something with a rope, it has to
- *          acquire the rope's lock first. After it's done, it releases
- *          the lock and decrements the ropes_left variable (except for
- *          flowerkiller, who does not decrement ropes_left).
+ *          acquire the rope's lock first. After it's done, it decrements
+ *          the protected ropes_left variable (except for flowerkiller,
+ *          who does not decrement ropes_left), and releases the lock.
  *      - threads know they are done if the ropes_left variable reaches
  *          0, signifying that all ropes have been successfully severed.
  *      - after the dandelion, marigold, and flowerkiller threads have
@@ -84,7 +86,9 @@ dandelion(void *p, unsigned long arg)
             kprintf("Dandelion severed rope %d\n", balloon_hook_index);
             ropes_to_stakes[balloon_hook_index] = -1;
             rope_severed = true;
+            lock_acquire(&ropes_left_lock);
             ropes_left--;
+            lock_release(&ropes_left_lock);
         }
         lock_release(&rope_locks[balloon_hook_index]);
 
@@ -132,7 +136,9 @@ marigold(void *p, unsigned long arg)
                         i, ground_stake_index);
                     ropes_to_stakes[i] = -1;
                     rope_severed = true;
+                    lock_acquire(&ropes_left_lock);
                     ropes_left--;
+                    lock_release(&ropes_left_lock);
                     lock_release(&rope_locks[i]);
                 }
             };
@@ -222,8 +228,6 @@ balloon(void *p, unsigned long arg)
     (void)arg;
 }
 
-
-// Change this function as necessary
 int
 airballoon(int nargs, char **args)
 {
@@ -232,14 +236,15 @@ airballoon(int nargs, char **args)
     (void)args;
 
     // Initialize ropes_left, mappings, and locks
-    ropes_left = 16;
+    ropes_left = NROPES;
     int i = 0;
     for(i = 0; i < NROPES; i++) {
         ropes_to_stakes[i] = i;
         rope_locks[i] = *lock_create("rope_lock");
     }
     
-    // Create the semaphores and fork the threads
+    // Create the ropes_left_lock, semaphores and fork the threads
+    ropes_left_lock = *lock_create("ropes_left_lock");
     done_sem = *sem_create("done_sem", 0);
     rope_sem = *sem_create("rope_sem", 0);
 
@@ -269,6 +274,18 @@ airballoon(int nargs, char **args)
         P(&rope_sem);
     }
     kprintf("Main thread done\n");
+    
+    // Destroy the structures we created
+    /*
+    lock_destroy(&ropes_left_lock);
+    int j = 0;
+    for(j = 0; j < NROPES; j++) {
+        lock_destroy(&rope_locks[j]);
+    }
+
+    sem_destroy(&rope_sem);
+    sem_destroy(&done_sem);
+    */
 
     goto done;
 panic:
