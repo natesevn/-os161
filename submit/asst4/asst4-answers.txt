@@ -9,13 +9,17 @@
 2)  What is the difference between UIO_USERISPACE and UIO_USERSPACE? 
     When should one use UIO_SYSSPACE instead?
 
-    - UIO_USERISPACE contains user process code.
+    - UIO_USERISPACE contains executable user process code.
     - UIO_USERSPACE contains user process data.
     - UIO_SYSSPACE should be used when transferring data within kernel space.
 
 3)  Why can the struct uio that is used to read in a segment be allocated on 
     the stack in load_segment() (i.e., where does the memory read actually go)?
 
+    The data from memory read goes into the virtual address space pointed to by
+    the pointer *as which was passed in as an argument to the load_segment()
+    function.
+    TODO: WHY STACK?!
 
 4)  In runprogram(), why is it important to call vfs_close() before going 
     to usermode?
@@ -26,7 +30,7 @@
 5)  What function forces the processor to switch into usermode? 
     Is this function machine dependent?
 
-    - enter_new_process(), which calls mips_usermode().
+    - enter_new_process() in trap.c, line 423, which calls mips_usermode().
     - It is hardware dependent. Passing argc/argv may use additional stack 
     space on some other platforms (but not on mips).
 
@@ -41,8 +45,7 @@
 
 7)  What (briefly) is the purpose of userptr_t?
 
-    - "Define userptr_t as a pointer to a one-byte struct, so it won't 
-    mix with other pointers."
+    - userptr_t is a pointer that is used to point to a user-space address
 
 8)  What is the numerical value of the exception code for a MIPS system call?
     
@@ -89,6 +92,8 @@
     - arg0 is found inside tf->a0
     - arg1 is split between tf->a2 and tf->a3 (32 bits per register)
     - arg2 is found on the stack
+    - 64-bit offset will be split and returned in registers v0 and v1 (32 bits
+      per register)
 
 15) As you were reading the code in runprogram.c and loadelf.c, you probably 
     noticed how the kernel manipulates the files. Which kernel function is 
