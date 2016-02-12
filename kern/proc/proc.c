@@ -124,7 +124,7 @@ proc_create(const char *name)
     proc->filetable[2]->fte_permissions = O_WRONLY;
     proc->filetable[2]->fte_lock = lock_create("stderr_lock");
 
-    proc->filetableLock = lock_create("filetable_lock");
+    proc->filetable_lock = lock_create("filetable_lock");
     //proc has its own vnode..
 
 	return proc;
@@ -218,7 +218,7 @@ proc_destroy(struct proc *proc)
     for(i=0; i<OPEN_MAX; i++) {
     	proc->filetable[i] = NULL;
     }
-    lock_destroy(proc->filetableLock);
+    lock_destroy(proc->filetable_lock);
     
 	kfree(proc->p_name);
 	kfree(proc);
