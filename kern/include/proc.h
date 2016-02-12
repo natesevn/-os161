@@ -61,7 +61,7 @@ struct proc {
 
 	/* add more material here as needed */
     struct filetable_entry *filetable[OPEN_MAX];
-    struct lock *filetableLock;
+    struct lock *filetable_lock;
 };
 
 /* This is the process structure for the kernel and for kernel-only threads. */

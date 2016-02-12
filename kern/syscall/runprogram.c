@@ -59,6 +59,73 @@ runprogram(char *progname)
 	vaddr_t entrypoint, stackptr;
 	int result;
 
+	/* Console constants */
+	struct vnode *stdin;
+	struct vnode *stdout;
+	struct vnode *stderr;
+	char *consoleName = kstrdup("con:");
+	char *consoleNameI = kstrdup("con:");
+	char *consoleNameO = kstrdup("con:");
+	char *consoleNameE = kstrdup("con:");
+
+	 /* stdin */
+    if(vfs_open(consoleNameI, O_RDONLY, 0664, &stdin)){
+    	kfree(consoleNameI);
+    	kfree(consoleNameO);
+    	kfree(consoleNameE);
+    	vfs_close(stdin);
+    	return EINVAL;
+    }
+    curproc->filetable[0] = (struct filetable_entry *)
+    						kmalloc(sizeof(struct filetable_entry));
+    curproc->filetable[0]->fte_vnode = stdin;
+    strcpy(curproc->filetable[0]->fte_filename, consoleName);
+    curproc->filetable[0]->fte_refcount = 1;
+    curproc->filetable[0]->fte_offset = 0;
+    curproc->filetable[0]->fte_permissions = O_RDONLY;
+    curproc->filetable[0]->fte_lock = lock_create("stdin_lock");
+
+    /* stdout */
+    if(vfs_open(consoleNameO, O_WRONLY, 0664, &stdout)){
+    	kfree(consoleNameI);
+    	kfree(consoleNameO);
+    	kfree(consoleNameE);
+    	lock_destroy(curproc->filetable[0]->fte_lock);
+    	kfree(curproc->filetable[0]);
+    	vfs_close(stdin);
+    	vfs_close(stdout);
+    }
+    curproc->filetable[1] = (struct filetable_entry *)
+    						kmalloc(sizeof(struct filetable_entry));
+    curproc->filetable[1]->fte_vnode = stdout;
+    strcpy(curproc->filetable[1]->fte_filename, consoleName);
+    curproc->filetable[1]->fte_refcount = 1;
+    curproc->filetable[1]->fte_offset = 0;
+    curproc->filetable[1]->fte_permissions = O_WRONLY;
+    curproc->filetable[1]->fte_lock = lock_create("stdout_lock");
+
+    /* stderr */
+    if(vfs_open(consoleNameE, O_WRONLY, 0664, &stderr)){
+    	kfree(consoleNameI);
+    	kfree(consoleNameO);
+    	kfree(consoleNameE);
+    	lock_destroy(curproc->filetable[0]->fte_lock);
+    	kfree(curproc->filetable[0]);
+    	lock_destroy(curproc->filetable[1]->fte_lock);
+    	kfree(curproc->filetable[1]);
+    	vfs_close(stdin);
+    	vfs_close(stdout);
+    	vfs_close(stderr);
+    }
+    curproc->filetable[2] = (struct filetable_entry *)
+    						kmalloc(sizeof(struct filetable_entry));
+    curproc->filetable[2]->fte_vnode = stderr;
+    strcpy(curproc->filetable[2]->fte_filename, consoleName);
+    curproc->filetable[2]->fte_refcount = 1;
+    curproc->filetable[2]->fte_offset = 0;
+    curproc->filetable[2]->fte_permissions = O_WRONLY;
+    curproc->filetable[2]->fte_lock = lock_create("stderr_lock");
+
 	/* Open the file. */
 	result = vfs_open(progname, O_RDONLY, 0, &v);
 	if (result) {

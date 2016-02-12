@@ -95,12 +95,9 @@ proc_create(const char *name)
     }
 
     proc->filetable_lock = lock_create("filetable_lock");   
-
-	return proc;
+	
+    return proc;
 }
-
-int
-proc_init
 
 /*
  * Destroy a proc structure.
@@ -190,7 +187,7 @@ proc_destroy(struct proc *proc)
     for(i=0; i<OPEN_MAX; i++) {
     	proc->filetable[i] = NULL;
     }
-    lock_destroy(proc->filetableLock);
+    lock_destroy(proc->filetable_lock);
     
 	kfree(proc->p_name);
 	kfree(proc);
