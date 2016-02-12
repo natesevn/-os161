@@ -5,7 +5,7 @@
 #include <current.h>
 
 int
-sys___open(const char* filename, int flags, int *retval)
+sys_open(const char* filename, int flags, int *retval)
 {
     // Copy in the string from user level to kernel level.
     // copyinstr handles EFAULT and ENAMETOOLONG errors 
@@ -70,7 +70,7 @@ sys___open(const char* filename, int flags, int *retval)
 }
 
 int 
-sys___close(int fd)
+sys_close(int fd)
 {
     // Check if fd is invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
@@ -94,7 +94,7 @@ sys___close(int fd)
 }
 
 int
-sys___read(int fd, void *readbuf, size_t buflen, int *retval)
+sys_read(int fd, void *readbuf, size_t buflen, int *retval)
 {
     // Check if fd is invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
@@ -137,7 +137,7 @@ sys___read(int fd, void *readbuf, size_t buflen, int *retval)
 }
 
 int 
-sys___write(int fd, const void *writebuf, size_t nbytes, int *retval)
+sys_write(int fd, const void *writebuf, size_t nbytes, int *retval)
 {
 	// Check if fd is invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
@@ -180,7 +180,7 @@ sys___write(int fd, const void *writebuf, size_t nbytes, int *retval)
 }
 
 off_t
-sys___lseek(int fd, off_t pos, int whence)
+sys_lseek(int fd, off_t pos, int whence)
 {
     // Check if fd and whence are invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
@@ -204,7 +204,7 @@ sys___lseek(int fd, off_t pos, int whence)
 }
 
 int 
-sys___dup2(int oldfd, int newfd, int *retval)
+sys_dup2(int oldfd, int newfd, int *retval)
 {
     // Check if oldfd and newfd are invalid
     if(oldfd >= OPEN_MAX || oldfd < 0 || curproc->filetable[oldfd] == NULL) {
@@ -236,7 +236,7 @@ sys___dup2(int oldfd, int newfd, int *retval)
 }
 
 int 
-sys___chdir(const char *pathname)
+sys_chdir(const char *pathname)
 {
     // Copy in the string from user level to kernel level.
     // copyinstr handles EFAULT and ENAMETOOLONG errors 
@@ -261,7 +261,7 @@ sys___chdir(const char *pathname)
 }
 
 int 
-sys___getcwd(char *buf, size_t buflen)
+sys_getcwd(char *buf, size_t buflen)
 {
     // Create a new iovec struct
     struct iovec newiov;
@@ -284,8 +284,7 @@ sys___getcwd(char *buf, size_t buflen)
         return getcwdsuccess;
     }
     
-    return 0; 
-    
+    return 0;  
 }
 
 
