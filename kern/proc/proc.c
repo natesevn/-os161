@@ -48,6 +48,12 @@
 #include <current.h>
 #include <addrspace.h>
 #include <vnode.h>
+// Headers added for filetable
+#include <filetable.h>
+#include <limits.h>
+#include <kern/fcntl.h>
+#include <synch.h>
+#include <vfs.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -62,6 +68,7 @@ struct proc *
 proc_create(const char *name)
 {
 	struct proc *proc;
+
 
 	proc = kmalloc(sizeof(*proc));
 	if (proc == NULL) {
@@ -81,6 +88,44 @@ proc_create(const char *name)
 
 	/* VFS fields */
 	proc->p_cwd = NULL;
+
+    /* Initialize filetable */
+    int i;
+    for(i=0; i<OPEN_MAX; i++) {
+    	proc->filetable[i] = NULL;
+    }
+
+    const char *consoleName = "con:";
+   
+    /* stdin */
+    const char *consoleNameI = "con:";
+    vfs_open((char *)consoleNameI, O_RDONLY, 0664, &proc->filetable[0]->fte_vnode);
+    proc->filetable[0]->fte_filename = consoleName;
+    proc->filetable[0]->fte_refcount = 1;
+    proc->filetable[0]->fte_offset = 0;
+    proc->filetable[0]->fte_permissions = O_RDONLY;
+    proc->filetable[0]->fte_lock = lock_create("stdin_lock");
+
+    /* stdout */
+    const char *consoleNameO = "con:";
+    vfs_open((char *)consoleNameO, O_WRONLY, 0664, &proc->filetable[1]->fte_vnode);
+    proc->filetable[1]->fte_filename = consoleName;
+    proc->filetable[1]->fte_refcount = 1;
+    proc->filetable[1]->fte_offset = 0;
+    proc->filetable[1]->fte_permissions = O_WRONLY;
+    proc->filetable[1]->fte_lock = lock_create("stdout_lock");
+
+    /* stderr */
+    const char *consoleNameE = "con:";
+    vfs_open((char *)consoleNameE, O_WRONLY, 0664, &proc->filetable[2]->fte_vnode);
+    proc->filetable[2]->fte_filename = consoleName;
+    proc->filetable[2]->fte_refcount = 1;
+    proc->filetable[2]->fte_offset = 0;
+    proc->filetable[2]->fte_permissions = O_WRONLY;
+    proc->filetable[2]->fte_lock = lock_create("stderr_lock");
+
+    proc->filetableLock = lock_create("filetable_lock");
+    //proc has its own vnode..
 
 	return proc;
 }
@@ -168,6 +213,13 @@ proc_destroy(struct proc *proc)
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
 
+	/* Change everything to null again */
+	int i;
+    for(i=0; i<OPEN_MAX; i++) {
+    	proc->filetable[i] = NULL;
+    }
+    lock_destroy(proc->filetableLock);
+    
 	kfree(proc->p_name);
 	kfree(proc);
 }
