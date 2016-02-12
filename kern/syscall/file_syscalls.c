@@ -3,9 +3,10 @@
 #include <syscalls.h>
 #include <limits.h>
 #include <current.h>
+#include <file_syscalls.h>
 
 int
-sys___open(const char* fileName, int flags, int *retval)
+sys_open(const char* fileName, int flags, int *retval)
 {
     // Copy in the string from user level to kernel level.
     // copyinstr handles EFAULT and ENAMETOOLONG errors 
@@ -70,7 +71,7 @@ sys___open(const char* fileName, int flags, int *retval)
 }
 
 int 
-sys___close(int fd)
+sys_close(int fd)
 {
     // Check if fd is invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
@@ -94,7 +95,7 @@ sys___close(int fd)
 }
 
 int
-sys___read(int fd, void *readbuf, size_t buflen, int *retval)
+sys_read(int fd, void *readbuf, size_t buflen, int *retval)
 {
     // Check if fd is invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
@@ -137,7 +138,7 @@ sys___read(int fd, void *readbuf, size_t buflen, int *retval)
 }
 
 int 
-sys___write(int fd, const void *writebuf, size_t nbytes, int *retval)
+sys_write(int fd, const void *writebuf, size_t nbytes, int *retval)
 {
 	// Check if fd is invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
