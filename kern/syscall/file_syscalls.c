@@ -5,13 +5,13 @@
 #include <current.h>
 
 int
-sys___open(const char* fileName, int flags, int *retval)
+sys___open(const char* filename, int flags, int *retval)
 {
     // Copy in the string from user level to kernel level.
     // copyinstr handles EFAULT and ENAMETOOLONG errors 
     char filenamebuffer[NAME_MAX];
     size_t *actual;
-    int copysuccess = copyinstr(fileName, fileNameBuffer, NAME_MAX, actual);
+    int copysuccess = copyinstr(filename, filenamebuffer, NAME_MAX, actual);
 
     // Check if filename is invalid
     if(copysuccess != 0) {
@@ -178,7 +178,7 @@ sys___write(int fd, const void *writebuf, size_t nbytes, int *retval)
     *retval = newoffset - oldoffset;
     return 0;
 }
-/*
+
 off_t
 sys___lseek(int fd, off_t pos, int whence)
 {
@@ -204,7 +204,7 @@ sys___lseek(int fd, off_t pos, int whence)
 }
 
 int 
-sys___dup2(int oldfd, int newfd)
+sys___dup2(int oldfd, int newfd, int *retval)
 {
     // Check if oldfd and newfd are invalid
     if(oldfd >= OPEN_MAX || oldfd < 0 || curproc->filetable[oldfd] == NULL) {
@@ -214,30 +214,78 @@ sys___dup2(int oldfd, int newfd)
         return EBADF;
     }
 
-    // Acquire the filetable lock
-    lock_acquire(&curproc->filetable_lock);
-
-    // Iterate through filetable to find a free slot
-    int i;
-    int fd; 
-    for(i = 0; i < OPEN_MAX; i++) {
-        if(curproc->filetable[i] == NULL) {
-            fd = i;
-            break;
-        }
+    // Close the file to free up the slot in newfd
+    while(curproc->filetable[newfd] != NULL) {
+        sys___close(newfd);
     }
+
+    // Increasing the reference count and 
+    // duplicate the file into filetable[newfd]
+    lock_acquire(&curproc->filetable[oldfd]->fte_lock);
+    curproc->filetable[oldfd]->fte_refcount++;
+    lock_release(&curproc->filetable[oldfd]->fte_lock);
+
+    lock_acquire(&curproc->filetable_lock);
+    curproc->filetable[newfd] = curproc->filetable[oldfd];
+    lock_release(&curproc->filetable_lock);
+
+    // Return the newfd in the retval variable by reference,
+    // and return 0 in the function itself.
+    *retval = newfd;
+    return 0;
 }
 
 int 
 sys___chdir(const char *pathname)
 {
+    // Copy in the string from user level to kernel level.
+    // copyinstr handles EFAULT and ENAMETOOLONG errors 
+    char pathnamebuffer[PATH_MAX];
+    size_t *actual;
+    int copysuccess = copyinstr(pathname, pathnamebuffer, PATH_MAX, actual);
 
+    // Check if filename is invalid
+    if(copysuccess != 0) {
+        return copysuccess;
+    }
+
+    // Call vfs_chdir
+    int chdirsuccess = vfs_chdir(pathnamebuffer);
+    
+    // Check if vfs_chdir was unsuccessful    
+    if(chdirsuccess != 0) {
+        return chdirsuccess;
+    }
+    
+    return 0; 
 }
 
 int 
 sys___getcwd(char *buf, size_t buflen)
 {
+    // Create a new iovec struct
+    struct iovec newiov;
+    newiov->iov_len = buflen;
+    newiov->iov_kbase = buf;
+    
+    // Create a new uio struct
+    struct uio *newuio;
+    newuio->uio_iov = newiov;
+    newuio->uio_iovcnt = 1;
+    newuio->uio_offset = 0;
+    newuio->uio_resid = buflen;
+    newuio->uio_segflg = UIO_USERSPACE;
+    newuio->uio_rw = UIO_READ;
+    newuio->uio_space = curproc;
+    
+    // Call vfs_getcwd and check for errors
+    int getcwdsuccess = vfs_getcwd(newuio);
+    if(getcwdsuccess != 0) {
+        return getcwdsuccess;
+    }
+    
+    return 0; 
+    
 }
-*/
 
 
