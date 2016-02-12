@@ -36,6 +36,7 @@
 #include <current.h>
 #include <syscall.h>
 #include <file_syscalls.h>
+#include <copyinout.h>
 
 
 /*
@@ -89,6 +90,9 @@ syscall(struct trapframe *tf)
 
 	callno = tf->tf_v0;
 
+	off_t sys_pos;
+	int whence
+
 	/*
 	 * Initialize retval to 0. Many of the system calls don't
 	 * really return a value, just 0 for success and -1 on
@@ -129,7 +133,14 @@ syscall(struct trapframe *tf)
 		break;
 
 		case SYS_lseek:
-		err = sys_lseek(tf->tf_a0, tf->tf_a1, tf->tf_a2);
+		/* Pos should be in $a2:$a3 since 64 bits, a1 is unused */
+		sys_pos = tf->tf_a2 << 32;
+		sys_pos = sys_pos | tf->tf_a3;
+		err = copyin((const_userptr_t) tf->tf_sp+16, &whence, sizeof(int));
+		if(err) {
+			break;
+		}
+		err = sys_lseek(tf->tf_a0, pos, whence);
 		break;
 
 		case SYS_dup2:
