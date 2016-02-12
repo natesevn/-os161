@@ -4,9 +4,10 @@
 #include <limits.h>
 #include <current.h>
 #include <file_syscalls.h>
+#include <kern/errno.h>
 
 int
-sys_open(const char* fileName, int flags, int *retval)
+sys_open(const char* filename, int flags, int *retval)
 {
     // Copy in the string from user level to kernel level.
     // copyinstr handles EFAULT and ENAMETOOLONG errors 
