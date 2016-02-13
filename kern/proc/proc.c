@@ -94,8 +94,7 @@ proc_create(const char *name)
     	proc->filetable[i] = NULL;
     }
 
-    proc->filetable_lock = lock_create("filetable_lock");   
-	
+    proc->filetable_lock = lock_create("filetable_lock");
     return proc;
 }
 

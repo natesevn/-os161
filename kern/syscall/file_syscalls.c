@@ -20,8 +20,7 @@ sys_open(const userptr_t filename, int flags, int *retval)
     // Copy in the string from user level to kernel level.
     // copyinstr handles EFAULT and ENAMETOOLONG errors 
     char filenamebuffer[NAME_MAX];
-    size_t *actual = NULL;
-    int copysuccess = copyinstr(filename, filenamebuffer, NAME_MAX, actual);
+    int copysuccess = copyinstr(filename, filenamebuffer, NAME_MAX, NULL);
 
     // Check if filename is invalid
     if(copysuccess != 0) {
@@ -34,7 +33,8 @@ sys_open(const userptr_t filename, int flags, int *retval)
     }
 
     // Create new filetable_entry
-    struct filetable_entry *fte = kmalloc(sizeof(fte));
+    struct filetable_entry *fte = (struct filetable_entry *) 
+                                    kmalloc(sizeof(struct filetable_entry));
     struct vnode *newvnode = NULL; 
     fte->fte_vnode = newvnode;
     fte->fte_filename = filenamebuffer;
@@ -117,25 +117,25 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
     }
     
     // Create a new iovec struct
-    struct iovec *newiov = kmalloc(sizeof(newiov));
-    newiov->iov_len = buflen;
-    newiov->iov_kbase = readbuf;
+    struct iovec newiov;
+    newiov.iov_len = buflen;
+    newiov.iov_ubase = readbuf;
     
     // Create a new uio struct
-    struct uio *newuio = kmalloc(sizeof(newuio));
-    newuio->uio_iov = newiov;
-    newuio->uio_iovcnt = 1;
-    newuio->uio_offset = curproc->filetable[fd]->fte_offset;
-    newuio->uio_resid = buflen;
-    newuio->uio_segflg = UIO_USERSPACE;
-    newuio->uio_rw = UIO_READ;
-    //newuio->uio_space = curproc;
+    struct uio newuio;
+    newuio.uio_iov = &newiov;
+    newuio.uio_iovcnt = 1;
+    newuio.uio_offset = curproc->filetable[fd]->fte_offset;
+    newuio.uio_resid = buflen;
+    newuio.uio_segflg = UIO_USERSPACE;
+    newuio.uio_rw = UIO_READ;
+    newuio.uio_space = curproc->p_addrspace;
    
     // Call VOP_READ and update the filetable entry's offset
     lock_acquire(curproc->filetable[fd]->fte_lock);
-    VOP_READ(curproc->filetable[fd]->fte_vnode, newuio);
+    VOP_READ(curproc->filetable[fd]->fte_vnode, &newuio);
     int oldoffset = curproc->filetable[fd]->fte_offset;
-    int newoffset = newuio->uio_offset;
+    int newoffset = newuio.uio_offset;
     curproc->filetable[fd]->fte_offset = newoffset;
     lock_release(curproc->filetable[fd]->fte_lock);
 
@@ -160,25 +160,25 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     }
 
     // Create a new iovec struct
-    struct iovec *newiov = kmalloc(sizeof(newiov));
-    newiov->iov_len = nbytes;
-    newiov->iov_kbase = writebuf;
+    struct iovec newiov;
+    newiov.iov_len = nbytes;
+    newiov.iov_ubase = writebuf;
     
     // Create a new uio struct
-    struct uio *newuio = kmalloc(sizeof(newuio));
-    newuio->uio_iov = newiov;
-    newuio->uio_iovcnt = 1;
-    newuio->uio_offset = curproc->filetable[fd]->fte_offset;
-    newuio->uio_resid = nbytes;
-    newuio->uio_segflg = UIO_USERSPACE;
-    newuio->uio_rw = UIO_WRITE;
-    //newuio->uio_space = curproc;
+    struct uio newuio;
+    newuio.uio_iov = &newiov;
+    newuio.uio_iovcnt = 1;
+    newuio.uio_offset = curproc->filetable[fd]->fte_offset;
+    newuio.uio_resid = nbytes;
+    newuio.uio_segflg = UIO_USERSPACE;
+    newuio.uio_rw = UIO_WRITE;
+    newuio.uio_space = curproc->p_addrspace;
     
      // Call VOP_WRITE and update the filetable entry's offset
     lock_acquire(curproc->filetable[fd]->fte_lock);
-    VOP_WRITE(curproc->filetable[fd]->fte_vnode, newuio);
+    VOP_WRITE(curproc->filetable[fd]->fte_vnode, &newuio);
     int oldoffset = curproc->filetable[fd]->fte_offset;
-    int newoffset = newuio->uio_offset;
+    int newoffset = newuio.uio_offset;
     curproc->filetable[fd]->fte_offset = newoffset;
     lock_release(curproc->filetable[fd]->fte_lock);
 
@@ -250,8 +250,7 @@ sys_chdir(const userptr_t pathname)
     // Copy in the string from user level to kernel level.
     // copyinstr handles EFAULT and ENAMETOOLONG errors 
     char pathnamebuffer[PATH_MAX];
-    size_t *actual = NULL;
-    int copysuccess = copyinstr(pathname, pathnamebuffer, PATH_MAX, actual);
+    int copysuccess = copyinstr(pathname, pathnamebuffer, PATH_MAX, NULL);
 
     // Check if filename is invalid
     if(copysuccess != 0) {
@@ -273,22 +272,22 @@ int
 sys_getcwd(userptr_t buf, size_t buflen)
 {
     // Create a new iovec struct
-    struct iovec *newiov = kmalloc(sizeof(newiov));
-    newiov->iov_len = buflen;
-    newiov->iov_kbase = buf;
+    struct iovec newiov;
+    newiov.iov_len = buflen;
+    newiov.iov_ubase = buf;
     
     // Create a new uio struct
-    struct uio *newuio = kmalloc(sizeof(newuio));
-    newuio->uio_iov = newiov;
-    newuio->uio_iovcnt = 1;
-    newuio->uio_offset = 0;
-    newuio->uio_resid = buflen;
-    newuio->uio_segflg = UIO_USERSPACE;
-    newuio->uio_rw = UIO_READ;
-    //newuio->uio_space = curproc;
+    struct uio newuio;
+    newuio.uio_iov = &newiov;
+    newuio.uio_iovcnt = 1;
+    newuio.uio_offset = 0;
+    newuio.uio_resid = buflen;
+    newuio.uio_segflg = UIO_USERSPACE;
+    newuio.uio_rw = UIO_READ;
+    newuio.uio_space = curproc->p_addrspace;
     
     // Call vfs_getcwd and check for errors
-    int getcwdsuccess = vfs_getcwd(newuio);
+    int getcwdsuccess = vfs_getcwd(&newuio);
     if(getcwdsuccess != 0) {
         return getcwdsuccess;
     }

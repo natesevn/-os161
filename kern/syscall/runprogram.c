@@ -76,10 +76,11 @@ runprogram(char *progname)
     	vfs_close(stdin);
     	return EINVAL;
     }
+
     curproc->filetable[0] = (struct filetable_entry *)
     						kmalloc(sizeof(struct filetable_entry));
     curproc->filetable[0]->fte_vnode = stdin;
-    strcpy(curproc->filetable[0]->fte_filename, consoleName);
+    curproc->filetable[0]->fte_filename = consoleName;
     curproc->filetable[0]->fte_refcount = 1;
     curproc->filetable[0]->fte_offset = 0;
     curproc->filetable[0]->fte_permissions = O_RDONLY;
@@ -98,7 +99,8 @@ runprogram(char *progname)
     curproc->filetable[1] = (struct filetable_entry *)
     						kmalloc(sizeof(struct filetable_entry));
     curproc->filetable[1]->fte_vnode = stdout;
-    strcpy(curproc->filetable[1]->fte_filename, consoleName);
+    //strcpy(curproc->filetable[1]->fte_filename, consoleName);
+    curproc->filetable[1]->fte_filename = consoleName;
     curproc->filetable[1]->fte_refcount = 1;
     curproc->filetable[1]->fte_offset = 0;
     curproc->filetable[1]->fte_permissions = O_WRONLY;
@@ -120,7 +122,8 @@ runprogram(char *progname)
     curproc->filetable[2] = (struct filetable_entry *)
     						kmalloc(sizeof(struct filetable_entry));
     curproc->filetable[2]->fte_vnode = stderr;
-    strcpy(curproc->filetable[2]->fte_filename, consoleName);
+    //strcpy(curproc->filetable[2]->fte_filename, consoleName);
+    curproc->filetable[2]->fte_filename = consoleName;
     curproc->filetable[2]->fte_refcount = 1;
     curproc->filetable[2]->fte_offset = 0;
     curproc->filetable[2]->fte_permissions = O_WRONLY;
