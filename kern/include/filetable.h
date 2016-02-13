@@ -16,7 +16,7 @@ struct filetable_entry {
     struct vnode *fte_vnode;
     char *fte_filename;
     int fte_refcount;
-    int fte_offset;
+    off_t fte_offset;
     int fte_permissions;
     struct lock *fte_lock;
 };

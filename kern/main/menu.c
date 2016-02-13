@@ -717,4 +717,6 @@ menu(char *args)
 		kgets(buf, sizeof(buf));
 		menu_execute(buf, 0);
 	}
+
+    while (1);
 }

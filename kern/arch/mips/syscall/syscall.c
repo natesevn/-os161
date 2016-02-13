@@ -91,7 +91,7 @@ syscall(struct trapframe *tf)
 	callno = tf->tf_v0;
 
 	off_t sys_pos;
-	int whence
+	int whence;
 
 	/*
 	 * Initialize retval to 0. Many of the system calls don't
@@ -103,7 +103,7 @@ syscall(struct trapframe *tf)
 	 */
 
 	retval = 0;
-	//(userptr_t)
+
 	switch (callno) {
 	    case SYS_reboot:
 		err = sys_reboot(tf->tf_a0);
@@ -134,13 +134,14 @@ syscall(struct trapframe *tf)
 
 		case SYS_lseek:
 		/* Pos should be in $a2:$a3 since 64 bits, a1 is unused */
-		sys_pos = tf->tf_a2 << 32;
+		sys_pos = tf->tf_a2; 
+        sys_pos = sys_pos << 32;
 		sys_pos = sys_pos | tf->tf_a3;
 		err = copyin((const_userptr_t) tf->tf_sp+16, &whence, sizeof(int));
 		if(err) {
 			break;
 		}
-		err = sys_lseek(tf->tf_a0, pos, whence);
+		err = sys_lseek(tf->tf_a0, sys_pos, whence, &retval);
 		break;
 
 		case SYS_dup2:
@@ -154,8 +155,6 @@ syscall(struct trapframe *tf)
 		case SYS___getcwd:
 		err = sys_getcwd((userptr_t)tf->tf_a0, tf->tf_a1);
 		break;
-
-	    /* Add stuff here */
 
 	    default:
 		kprintf("Unknown syscall %d\n", callno);

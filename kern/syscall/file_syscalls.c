@@ -13,7 +13,8 @@
 #include <filetable.h>
 #include <proc.h>
 #include <vnode.h>
-
+#include <stat.h>
+    
 int
 sys_open(const userptr_t filename, int flags, int *retval)
 {
@@ -55,6 +56,11 @@ sys_open(const userptr_t filename, int flags, int *retval)
             break;
         }
     }
+
+    // Check if we actually found an empty slot
+    if(i == OPEN_MAX) {
+        return EMFILE;
+    }
     
     // Call vfs_open after securing the lock for the filetable entry
     lock_acquire(fte->fte_lock);
@@ -86,18 +92,26 @@ sys_close(int fd)
         return EBADF;
     }
     
-    // Call vfs_close and decrement our reference counter
+    // Decrement our reference counter and call vfs_close if it is 0.
     lock_acquire(curproc->filetable[fd]->fte_lock);
-    vfs_close(curproc->filetable[fd]->fte_vnode);
     curproc->filetable[fd]->fte_refcount--;
-    lock_release(curproc->filetable[fd]->fte_lock);
+    if(curproc->filetable[fd]->fte_refcount == 0) {
+        vfs_close(curproc->filetable[fd]->fte_vnode);
 
-    // If reference counter is 0, we free up the slot in the filetable
-    lock_acquire(curproc->filetable_lock);
-	if(curproc->filetable[fd]->fte_refcount == 0) {
+        // We have to release the lock before freeing the entry
+        lock_release(curproc->filetable[fd]->fte_lock);
+        kfree(curproc->filetable[fd]);
+
+        // Set the entry to NULL to be explicit
+        lock_acquire(curproc->filetable_lock);
         curproc->filetable[fd] = NULL;
+        lock_release(curproc->filetable_lock);
     }
-    lock_release(curproc->filetable_lock);
+    else {
+        // If the refcount is still > 0, then we have not released the
+        // filetable entry's lock yet, so do it here.
+        lock_release(curproc->filetable[fd]->fte_lock);
+    }
 
     return 0;
 }
@@ -189,7 +203,7 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
 }
 
 off_t
-sys_lseek(int fd, off_t pos, int whence)
+sys_lseek(int fd, off_t pos, int whence, int *retval)
 {
     // Check if fd and whence are invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
@@ -208,8 +222,51 @@ sys_lseek(int fd, off_t pos, int whence)
         return ESPIPE;
     }
 
-    // TODO: CHANGE THE OFFSET AND UPDATE FTE_OFFSET
-    return pos; // change return value later
+    // Get the position of the end of file
+    lock_acquire(curproc->filetable[fd]->fte_lock);
+    struct stat newstat;
+    int statsuccess = VOP_STAT(curproc->filetable[fd]->fte_vnode, &newstat);
+    lock_release(curproc->filetable[fd]->fte_lock);
+
+    // Check if the stat failed
+    if(statsuccess != 0) {
+        return statsuccess;
+    }
+    
+    // Change the offset, depending on what the value of whence is
+    lock_acquire(curproc->filetable[fd]->fte_lock);
+    switch(whence) {
+        case SEEK_SET:
+            if(pos < 0) {
+                return EINVAL;
+            }
+            curproc->filetable[fd]->fte_offset = pos;
+            break;
+
+        case SEEK_CUR:
+            if(curproc->filetable[fd]->fte_offset + pos < 0) {
+                return EINVAL;
+            }
+            curproc->filetable[fd]->fte_offset += pos;
+            break;
+
+        case SEEK_END:
+            if(newstat.st_size + pos < 0) {
+                return EINVAL;
+            }
+            curproc->filetable[fd]->fte_offset = newstat.st_size + pos;
+            break;
+
+        default:
+            break;
+    }
+    lock_release(curproc->filetable[fd]->fte_lock);
+   
+    // Return the amount of bytes read in the retval variable by reference,
+    // and return 0 in the function itself.
+    off_t newoffset = curproc->filetable[fd]->fte_offset; 
+    *retval = newoffset;
+    return 0;
 }
 
 int 
@@ -224,19 +281,18 @@ sys_dup2(int oldfd, int newfd, int *retval)
     }
 
     // Close the file to free up the slot in newfd
-    while(curproc->filetable[newfd] != NULL) {
+    if(curproc->filetable[newfd] != NULL) {
         sys_close(newfd);
     }
 
-    // Increasing the reference count and 
+    // Increase the reference count and 
     // duplicate the file into filetable[newfd]
     lock_acquire(curproc->filetable[oldfd]->fte_lock);
     curproc->filetable[oldfd]->fte_refcount++;
-    lock_release(curproc->filetable[oldfd]->fte_lock);
-
     lock_acquire(curproc->filetable_lock);
     curproc->filetable[newfd] = curproc->filetable[oldfd];
     lock_release(curproc->filetable_lock);
+    lock_release(curproc->filetable[oldfd]->fte_lock);
 
     // Return the newfd in the retval variable by reference,
     // and return 0 in the function itself.
