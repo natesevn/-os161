@@ -88,13 +88,15 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
-    /* Initialize filetable */
+    /* Initialize filetable with null values */
     int i;
     for(i=0; i<OPEN_MAX; i++) {
     	proc->filetable[i] = NULL;
     }
-
+    
+    /* Create the lock to control access to this process' filetable */
     proc->filetable_lock = lock_create("filetable_lock");
+
     return proc;
 }
 

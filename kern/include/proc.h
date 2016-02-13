@@ -60,6 +60,8 @@ struct proc {
 	struct vnode *p_cwd;		/* current working directory */
 
 	/* add more material here as needed */
+
+    /* Filetable array and lock */
     struct filetable_entry *filetable[OPEN_MAX];
     struct lock *filetable_lock;
 };

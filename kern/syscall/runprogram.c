@@ -59,7 +59,12 @@ runprogram(char *progname)
 	vaddr_t entrypoint, stackptr;
 	int result;
 
-	/* Console constants */
+	/* Console constants 
+     * Use 4 copies of the same pathname since passing one as a param
+     * for vfs_open destroys it. The 4th copy of the pathname will be
+     * used to initialize the filetable entry struct for each standard
+     * stream.
+     */
 	struct vnode *stdin;
 	struct vnode *stdout;
 	struct vnode *stderr;
@@ -68,7 +73,9 @@ runprogram(char *progname)
 	char *consoleNameO = kstrdup("con:");
 	char *consoleNameE = kstrdup("con:");
 
-	 /* stdin */
+	 /* Try to open stdin.
+      * Upon failure, free all string pointers and close the vnode used.
+      */
     if(vfs_open(consoleNameI, O_RDONLY, 0664, &stdin)){
     	kfree(consoleNameI);
     	kfree(consoleNameO);
@@ -76,7 +83,11 @@ runprogram(char *progname)
     	vfs_close(stdin);
     	return EINVAL;
     }
-
+    
+    /* Attach stdin to this process' filetable at index 0.
+     * Use kmalloc to allocate sufficient memory for the struct.
+     * Then initialize each field of the struct.
+     */
     curproc->filetable[0] = (struct filetable_entry *)
     						kmalloc(sizeof(struct filetable_entry));
     curproc->filetable[0]->fte_vnode = stdin;
@@ -86,7 +97,10 @@ runprogram(char *progname)
     curproc->filetable[0]->fte_permissions = O_RDONLY;
     curproc->filetable[0]->fte_lock = lock_create("stdin_lock");
 
-    /* stdout */
+	/* Try to open stdout.
+     * Upon failure, free all string pointers and close the vnode used.
+     * Additionally, free the memory obtained by trying to attach stdin.
+     */
     if(vfs_open(consoleNameO, O_WRONLY, 0664, &stdout)){
     	kfree(consoleNameI);
     	kfree(consoleNameO);
@@ -96,17 +110,27 @@ runprogram(char *progname)
     	vfs_close(stdin);
     	vfs_close(stdout);
     }
+
+
+    /* Attach stdout to this process' filetable at index 1.
+     * Use kmalloc to allocate sufficient memory for the struct.
+     * Then initialize each field of the struct.
+     */
     curproc->filetable[1] = (struct filetable_entry *)
     						kmalloc(sizeof(struct filetable_entry));
     curproc->filetable[1]->fte_vnode = stdout;
-    //strcpy(curproc->filetable[1]->fte_filename, consoleName);
     curproc->filetable[1]->fte_filename = consoleName;
     curproc->filetable[1]->fte_refcount = 1;
     curproc->filetable[1]->fte_offset = 0;
     curproc->filetable[1]->fte_permissions = O_WRONLY;
     curproc->filetable[1]->fte_lock = lock_create("stdout_lock");
 
-    /* stderr */
+
+	/* Try to open stderr.
+     * Upon failure, free all string pointers and close the vnode used.
+     * Additionally, free the memory obtained by trying to attach both
+     * stdin and stdout. 
+     */
     if(vfs_open(consoleNameE, O_WRONLY, 0664, &stderr)){
     	kfree(consoleNameI);
     	kfree(consoleNameO);
@@ -119,10 +143,15 @@ runprogram(char *progname)
     	vfs_close(stdout);
     	vfs_close(stderr);
     }
+
+
+    /* Attach stderr to this process' filetable at index 2.
+     * Use kmalloc to allocate sufficient memory for the struct.
+     * Then initialize each field of the struct.
+     */
     curproc->filetable[2] = (struct filetable_entry *)
     						kmalloc(sizeof(struct filetable_entry));
     curproc->filetable[2]->fte_vnode = stderr;
-    //strcpy(curproc->filetable[2]->fte_filename, consoleName);
     curproc->filetable[2]->fte_filename = consoleName;
     curproc->filetable[2]->fte_refcount = 1;
     curproc->filetable[2]->fte_offset = 0;
