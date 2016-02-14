@@ -203,7 +203,7 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
 }
 
 off_t
-sys_lseek(int fd, off_t pos, int whence, int *retval)
+sys_lseek(int fd, off_t pos, int whence, off_t *retval)
 {
     // Check if fd and whence are invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
