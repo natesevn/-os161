@@ -96,7 +96,7 @@ test_dup2()
 	if (rv<0) {
 		err(1, "%s: write", file);
 	}
-	
+
 	dupfd = fd + 1;
 	rv = dup2(fd, dupfd);
 	if (rv<0) {
@@ -106,7 +106,7 @@ test_dup2()
 	{
 		err(1, "dup2() returned %d, expected %d\n", rv, dupfd);
 	}
-
+    
 	rv = write(dupfd, writebuf, 40);
 	if (rv<0) {
 		err(1, "%s: write via duplicated fd", file);
@@ -137,18 +137,17 @@ test_dup2()
 		err(1, "%s: close (3d time)", file);
 	}
 
-	/* ensure null termination */
+	// ensure null termination
 	readbuf[80] = 0;
 
-	/* Compare the second half */
+	// Compare the second half
 	if (strcmp(&readbuf[40], writebuf))
 	{
 		errx(1, "Buffer data mismatch!");
 	}
 
-	/* Put a null terminator after the expected
-	 * end of the first string and compare 
-	 */
+	// Put a null terminator after the expected
+	// end of the first string and compare 
 	readbuf[40] = 0;
 	if (strcmp(readbuf, writebuf)) 
 	{
@@ -178,7 +177,7 @@ test_openfile_limits()
 	 */
 	for(i = 0; i < (OPEN_MAX-3); i++)
 	{
-		fd = open(file, O_RDWR|O_CREAT|O_TRUNC, 0664);
+        fd = open(file, O_RDWR|O_CREAT|O_TRUNC, 0664);
 		if (fd<0)
 			err(1, "%s: open for %dth time", file, (i+1));
 
@@ -262,18 +261,17 @@ simultaneous_write_test()
 		err(1, "%s: write", file2);
 	}
 
-	/* Rewind both files */
+	// Rewind both files
 	lseek_ret = lseek(fd1, -(40-seekpos), SEEK_CUR);
 	if (lseek_ret != seekpos) {
 		err(1, "%s: lseek", file1);
 	}
-
 	lseek_ret = lseek(fd2, seekpos, SEEK_SET);
 	if (lseek_ret != seekpos) {
 		err(1, "%s: lseek", file2);
 	}
 
-	/* Read and test the data from the first file */
+	// Read and test the data from the first file
 	rv = read(fd1, readbuf, 40-seekpos);
 	if (rv<0) {
 		err(1, "%s: read", file1);
@@ -283,7 +281,7 @@ simultaneous_write_test()
 	if (strcmp(readbuf, &writebuf1[seekpos]))
 		errx(1, "Buffer data mismatch for %s!", file1);
 	
-	/* Read and test the data from the second file */
+	// Read and test the data from the second file
 	rv = read(fd2, readbuf, 40-seekpos);
 	if (rv<0) {
 		err(1, "%s: read", file2);
@@ -306,7 +304,6 @@ simultaneous_write_test()
 	{
 		err(1, "%s: close", file2);
 	}
-
 }
 
 static void
@@ -359,7 +356,7 @@ dir_test()
 int
 main()
 {
-	test_openfile_limits();
+    test_openfile_limits();
 	printf("Passed Part 1 of fsyscalltest\n");
 
 	simple_test();
