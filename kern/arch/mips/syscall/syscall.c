@@ -91,6 +91,7 @@ syscall(struct trapframe *tf)
 	callno = tf->tf_v0;
 
 	off_t sys_pos;
+	off_t retval64;
 	int whence;
 
 	/*
@@ -141,7 +142,15 @@ syscall(struct trapframe *tf)
 		if(err) {
 			break;
 		}
-		err = sys_lseek(tf->tf_a0, sys_pos, whence, &retval);
+		err = sys_lseek(tf->tf_a0, sys_pos, whence, &retval64);
+
+		retval = (int32_t)(retval64 & 0xFFFFFFFF);
+		if(!err) {
+			tf->tf_v1 = retval;
+		}
+
+		retval = (int32_t)((retval64 >> 32) & 0x00000000FFFFFFFF);
+
 		break;
 
 		case SYS_dup2:
