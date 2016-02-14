@@ -146,8 +146,14 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
     newuio.uio_space = curproc->p_addrspace;
    
     // Call VOP_READ and update the filetable entry's offset
-    lock_acquire(curproc->filetable[fd]->fte_lock);
-    VOP_READ(curproc->filetable[fd]->fte_vnode, &newuio);
+    lock_acquire(curproc->filetable[fd]->fte_lock);  
+    int readsuccess = VOP_READ(curproc->filetable[fd]->fte_vnode, &newuio);
+    
+    // Checking for errors in the read
+    if(readsuccess != 0) {
+        return readsuccess;
+    }
+
     int oldoffset = curproc->filetable[fd]->fte_offset;
     int newoffset = newuio.uio_offset;
     curproc->filetable[fd]->fte_offset = newoffset;
@@ -172,6 +178,11 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     if(permissions == O_RDONLY) { 
         return EBADF;
     }
+ 
+    // Check if file is too large    
+    if(nbytes > ARG_MAX)  {
+        return EFBIG;
+    }
 
     // Create a new iovec struct
     struct iovec newiov;
@@ -190,7 +201,13 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     
      // Call VOP_WRITE and update the filetable entry's offset
     lock_acquire(curproc->filetable[fd]->fte_lock);
-    VOP_WRITE(curproc->filetable[fd]->fte_vnode, &newuio);
+    int writesuccess = VOP_WRITE(curproc->filetable[fd]->fte_vnode, &newuio);
+    
+    // Checking for errors in the write
+    if(writesuccess != 0) {
+        return writesuccess;
+    }
+
     int oldoffset = curproc->filetable[fd]->fte_offset;
     int newoffset = newuio.uio_offset;
     curproc->filetable[fd]->fte_offset = newoffset;
@@ -203,7 +220,7 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
 }
 
 off_t
-sys_lseek(int fd, off_t pos, int whence, off_t *retval)
+sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
 {
     // Check if fd and whence are invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
@@ -265,7 +282,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval)
     // Return the amount of bytes read in the retval variable by reference,
     // and return 0 in the function itself.
     off_t newoffset = curproc->filetable[fd]->fte_offset; 
-    *retval = newoffset;
+    *retval64 = newoffset;
     return 0;
 }
 
