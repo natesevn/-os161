@@ -180,9 +180,9 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     }
  
     // Check if file is too large    
-    if(nbytes > ARG_MAX)  {
-        return EFBIG;
-    }
+//    if(nbytes > ARG_MAX)  {
+  //      return EFBIG;
+    //}
 
     // Create a new iovec struct
     struct iovec newiov;
@@ -210,8 +210,16 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
 
     int oldoffset = curproc->filetable[fd]->fte_offset;
     int newoffset = newuio.uio_offset;
+
+    off_t checkoffset = newuio.uio_offset;
+    int32_t upperbits = (int32_t)((checkoffset >> 32) & 0x00000000FFFFFFFF);
+    
     curproc->filetable[fd]->fte_offset = newoffset;
     lock_release(curproc->filetable[fd]->fte_lock);
+
+    if(upperbits != 0x0) {
+        return EFBIG;
+    }
 
     // Return the amount of bytes written in the retval variable by reference,
     // and return 0 in the function itself.
@@ -283,6 +291,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
     // and return 0 in the function itself.
     off_t newoffset = curproc->filetable[fd]->fte_offset; 
     *retval64 = newoffset;
+
     return 0;
 }
 
