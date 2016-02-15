@@ -198,8 +198,8 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     newuio.uio_segflg = UIO_USERSPACE;
     newuio.uio_rw = UIO_WRITE;
     newuio.uio_space = curproc->p_addrspace;
-    
-     // Call VOP_WRITE and update the filetable entry's offset
+ 
+    // Call VOP_WRITE and update the filetable entry's offset
     lock_acquire(curproc->filetable[fd]->fte_lock);
     int writesuccess = VOP_WRITE(curproc->filetable[fd]->fte_vnode, &newuio);
     
