@@ -69,7 +69,6 @@ simple_test()
 		errx(1, "Buffer data mismatch!");
 	}
 }
-
 /*
  * This tests the very basic functionality of dup2.
  * We open/create a file, duplicate the file descriptor, 
@@ -348,7 +347,8 @@ dir_test()
 	{
 		err(1, "chdir into %s", chdir_name);
 	}
-}			
+}
+			
 
 /* This test takes no arguments, so we can run it before argument passing
  * is fully implemented. 
@@ -362,14 +362,14 @@ main()
 	simple_test();
 	printf("Passed Part 2 of fsyscalltest\n");
 	
-	/*simultaneous_write_test();
+	simultaneous_write_test();
 	printf("Passed Part 3 of fsyscalltest\n");
 	
 	test_dup2();
 	printf("Passed Part 4 of fsyscalltest\n");
 
 	dir_test();
-	printf("Passed Part 5 of fsyscalltest\n");*/
+	printf("Passed Part 5 of fsyscalltest\n");
 	
 	printf("All done!\n");
 	
