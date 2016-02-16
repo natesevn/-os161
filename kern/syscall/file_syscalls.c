@@ -301,7 +301,6 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
     // and return 0 in the function itself.
     off_t newoffset = curproc->filetable[fd]->fte_offset; 
     *retval64 = newoffset;
-
     return 0;
 }
 
