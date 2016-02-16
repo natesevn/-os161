@@ -198,7 +198,16 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     newuio.uio_segflg = UIO_USERSPACE;
     newuio.uio_rw = UIO_WRITE;
     newuio.uio_space = curproc->p_addrspace;
+   
+
+    // Test offset
+    off_t checkoffset = newuio.uio_offset + nbytes;
+    int32_t upperbits = (int32_t)((checkoffset >> 32) & 0x00000000FFFFFFFF);
     
+    if(upperbits != 0x0) {
+        return EFBIG;
+    } 
+ 
      // Call VOP_WRITE and update the filetable entry's offset
     lock_acquire(curproc->filetable[fd]->fte_lock);
     int writesuccess = VOP_WRITE(curproc->filetable[fd]->fte_vnode, &newuio);
@@ -211,8 +220,8 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     int oldoffset = curproc->filetable[fd]->fte_offset;
     int newoffset = newuio.uio_offset;
 
-    off_t checkoffset = newuio.uio_offset;
-    int32_t upperbits = (int32_t)((checkoffset >> 32) & 0x00000000FFFFFFFF);
+    checkoffset = newuio.uio_offset;
+    upperbits = (int32_t)((checkoffset >> 32) & 0x00000000FFFFFFFF);
     
     curproc->filetable[fd]->fte_offset = newoffset;
     lock_release(curproc->filetable[fd]->fte_lock);
