@@ -14,7 +14,13 @@
 #include <proc.h>
 #include <vnode.h>
 #include <stat.h>
-    
+
+/*
+ * SYSTEM CALL: OPEN
+ * 
+ * Opens the file specified by filename, and retuns the new file descriptor
+ * inside retval.
+ */ 
 int
 sys_open(const userptr_t filename, int flags, int *retval)
 {
@@ -87,6 +93,11 @@ sys_open(const userptr_t filename, int flags, int *retval)
     return 0;
 }
 
+/*
+ * SYSTEM CALL: CLOSE
+ *
+ * Closes the file at file descriptor fd.
+ */
 int 
 sys_close(int fd)
 {
@@ -120,10 +131,18 @@ sys_close(int fd)
     return 0;
 }
 
+/*
+ * SYSTEM CALL: READ
+ *
+ * Reads up to buflen bytes from the file at file descriptor fd, at the
+ * location in the file specified by its current seek position, and stores
+ * them in the space pointed to by readbuf. The file must have been opened
+ * for reading prior to calling this function. The count of bytes read is
+ * returned inside retval.
+ */
 int
 sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
 {
-    kprintf("im suck at the beginning\n");
     /* Check if fd is invalid. */
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
         return EBADF;
@@ -154,8 +173,9 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
     lock_acquire(curproc->filetable[fd]->fte_lock);  
     int readsuccess = VOP_READ(curproc->filetable[fd]->fte_vnode, &newuio);
     
-    /* Checking for errors in the read. */
+    /* Check for errors in the read. */
     if(readsuccess != 0) {
+        lock_release(curproc->filetable[fd]->fte_lock);
         return readsuccess;
     }
 
@@ -171,6 +191,15 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
     return 0;
 }
 
+/*
+ * SYSTEM CALL: WRITE
+ *
+ * Writes up to nbytes bytes to a file specified by fd, at the location in
+ * the file specified by the file's current seek position, taking the data
+ * from the space pointed to by writebuf. The file must have been opened
+ * for writing prior to calling this function. Returns the count of bytes
+ * written inside retval.
+ */
 int 
 sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
 {
@@ -213,8 +242,9 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     lock_acquire(curproc->filetable[fd]->fte_lock);
     int writesuccess = VOP_WRITE(curproc->filetable[fd]->fte_vnode, &newuio);
     
-    /* Checking for errors in the write. */
+    /* Check for errors in the write. */
     if(writesuccess != 0) {
+        lock_release(curproc->filetable[fd]->fte_lock);
         return writesuccess;
     }
 
@@ -238,6 +268,19 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     return 0;
 }
 
+/*
+ * SYSTEM CALL: LSEEK
+ *
+ * Alters the current seek position of the file at file descriptor fd, and
+ * seeks to a new position based on pos and whence.
+ *
+ * If whence is:
+ *  SEEK_SET, the new position is pos.
+ *  SEEK_CUR, the new position is the current position plus pos.
+ *  SEEK_END, the new position is the position of end-of-file plus pos.
+ *
+ * Returns the new position inside retval64 upon success.
+ */
 off_t
 sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
 {
@@ -274,6 +317,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
     switch(whence) {
         case SEEK_SET:
             if(pos < 0) {
+                lock_release(curproc->filetable[fd]->fte_lock);
                 return EINVAL;
             }
             curproc->filetable[fd]->fte_offset = pos;
@@ -281,6 +325,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
 
         case SEEK_CUR:
             if(curproc->filetable[fd]->fte_offset + pos < 0) {
+                lock_release(curproc->filetable[fd]->fte_lock);
                 return EINVAL;
             }
             curproc->filetable[fd]->fte_offset += pos;
@@ -288,6 +333,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
 
         case SEEK_END:
             if(newstat.st_size + pos < 0) {
+                lock_release(curproc->filetable[fd]->fte_lock);
                 return EINVAL;
             }
             curproc->filetable[fd]->fte_offset = newstat.st_size + pos;
@@ -306,6 +352,12 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
     return 0;
 }
 
+/*
+ * SYSTEM CALL: DUP2
+ *
+ * Clones the file at oldfd into a new file handle newfd. If newfd names
+ * an open file, that file is closed. Returns the newfd at retval upon success.
+ */
 int 
 sys_dup2(int oldfd, int newfd, int *retval)
 {
@@ -339,6 +391,12 @@ sys_dup2(int oldfd, int newfd, int *retval)
     return 0;
 }
 
+/* 
+ * SYSTEM CALL: CHDIR
+ *
+ * The current directory of the current process is set to the directory named
+ * by pathname.
+ */
 int 
 sys_chdir(const userptr_t pathname)
 {
@@ -364,6 +422,12 @@ sys_chdir(const userptr_t pathname)
     return 0; 
 }
 
+/*
+ * SYSTEM CALL: GETCWD
+ * 
+ * The name of the current directory is computed and stored in buf, an area
+ * of size buflen.
+ */
 int 
 sys_getcwd(userptr_t buf, size_t buflen)
 {
