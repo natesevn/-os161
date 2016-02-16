@@ -1,4 +1,4 @@
-cscope 15 $HOME/os161/src/kern               0000690661
+cscope 15 $HOME/os161/src/kern               0000685624
 	@arch/mips/include/current.h
 
 30 #iâdeà
@@ -3743,15 +3743,7 @@ tf
 	~<sysÿÎ.h
 >
 
-38 
-	~<fe_sysÿÎs.h
->
-
-39 
-	~<cİyšout.h
->
-
-81 
+79 
 	$sysÿÎ
 (
 Œ­äame
@@ -3759,21 +3751,21 @@ tf
 tf
 )
 
-83 
+81 
 ÿÎno
 ;
 
-84 
+82 
 št32_t
  
 »tv®
 ;
 
-85 
+83 
 ”r
 ;
 
-87 
+85 
 	`KASSERT
 (
 cu¹h»ad
@@ -3781,7 +3773,7 @@ cu¹h»ad
 NULL
 );
 
-88 
+86 
 	`KASSERT
 (
 cu¹h»ad
@@ -3789,7 +3781,7 @@ cu¹h»ad
 t_cur¥l
  == 0);
 
-89 
+87 
 	`KASSERT
 (
 cu¹h»ad
@@ -3797,7 +3789,7 @@ cu¹h»ad
 t_lhigh_couÁ
  == 0);
 
-91 
+89 
 ÿÎno
  = 
 tf
@@ -3805,35 +3797,19 @@ tf
 tf_v0
 ;
 
-93 
-off_t
- 
-sys_pos
-;
-
-94 
-off_t
- 
-»tv®64
-;
-
-95 
-wh’û
-;
-
-106 
+100 
 »tv®
  = 0;
 
-108 
+102 
 ÿÎno
 ) {
 
-109 
+103 
 SYS_»boÙ
 :
 
-110 
+104 
 ”r
  = 
 	`sys_»boÙ
@@ -3843,11 +3819,11 @@ tf
 tf_a0
 );
 
-113 
+107 
 SYS___time
 :
 
-114 
+108 
 ”r
  = 
 	`sys___time
@@ -3859,7 +3835,7 @@ tf
 tf_a0
 ,
 
-115 (
+109 (
 u£½Œ_t
 )
 tf
@@ -3867,243 +3843,23 @@ tf
 tf_a1
 );
 
-118 
-SYS_İ’
-:
-
-119 
-”r
- = 
-	`sys_İ’
-((cÚ¡ 
-u£½Œ_t
-)
-tf
-->
-tf_a0
-,f->
-tf_a1
-, &
-»tv®
-);
-
-122 
-SYS_şo£
-:
-
-123 
-”r
- = 
-	`sys_şo£
-(
-tf
-->
-tf_a0
-);
-
-126 
-SYS_»ad
-:
-
-127 
-”r
- = 
-	`sys_»ad
-(
-tf
-->
-tf_a0
-, (
-u£½Œ_t
-éf->
-tf_a1
-,f->
-tf_a2
-,
-
-128 &
-»tv®
-);
-
-131 
-SYS_wr™e
-:
-
-132 
-”r
- = 
-	`sys_wr™e
-(
-tf
-->
-tf_a0
-, (cÚ¡ 
-u£½Œ_t
-éf->
-tf_a1
-,f->
-tf_a2
-,
-
-133 &
-»tv®
-);
-
-136 
-SYS_l£ek
-:
-
-138 
-sys_pos
- = 
-tf
-->
-tf_a2
-;
-
-139 
-sys_pos
- = sys_pos << 32;
-
-140 
-sys_pos
- = sys_po | 
-tf
-->
-tf_a3
-;
-
-141 
-”r
- = 
-	`cİyš
-((
-cÚ¡_u£½Œ_t
-è
-tf
-->
-tf_¥
-+16, &
-wh’û
-, ());
-
-142 if(
-”r
-) {
-
-145 
-”r
- = 
-	`sys_l£ek
-(
-tf
-->
-tf_a0
-, 
-sys_pos
-, 
-wh’û
-, &
-»tv®64
-);
-
-147 
-»tv®
- = (
-št32_t
-)(
-»tv®64
- & 0xFFFFFFFF);
-
-148 if(!
-”r
-) {
-
-149 
-tf
-->
-tf_v1
- = 
-»tv®
-;
-
-152 
-»tv®
- = (
-št32_t
-)((
-»tv®64
- >> 32) & 0x00000000FFFFFFFF);
-
-156 
-SYS_dup2
-:
-
-157 
-”r
- = 
-	`sys_dup2
-(
-tf
-->
-tf_a0
-,f->
-tf_a1
-, &
-»tv®
-);
-
-160 
-SYS_chdœ
-:
-
-161 
-”r
- = 
-	`sys_chdœ
-((
-u£½Œ_t
-)
-tf
-->
-tf_a0
-);
-
-164 
-SYS___g‘cwd
-:
-
-165 
-”r
- = 
-	`sys_g‘cwd
-((
-u£½Œ_t
-)
-tf
-->
-tf_a0
-,f->
-tf_a1
-);
-
-169 
+115 
 	`k´štf
 ("UnknowÀsysÿÎ %d\n", 
 ÿÎno
 );
 
-170 
+116 
 ”r
  = 
 ENOSYS
 ;
 
-175 ià(
+121 ià(
 ”r
 ) {
 
-181 
+127 
 tf
 ->
 tf_v0
@@ -4111,13 +3867,13 @@ tf_v0
 ”r
 ;
 
-182 
+128 
 tf
 ->
 tf_a3
  = 1;
 
-186 
+132 
 tf
 ->
 tf_v0
@@ -4125,19 +3881,19 @@ tf_v0
 »tv®
 ;
 
-187 
+133 
 tf
 ->
 tf_a3
  = 0;
 
-195 
+141 
 tf
 ->
 tf_•c
  += 4;
 
-198 
+144 
 	`KASSERT
 (
 cu¹h»ad
@@ -4145,7 +3901,7 @@ cu¹h»ad
 t_cur¥l
  == 0);
 
-200 
+146 
 	`KASSERT
 (
 cu¹h»ad
@@ -4153,11 +3909,11 @@ cu¹h»ad
 t_lhigh_couÁ
  == 0);
 
-201 
+147 
 	}
 }
 
-212 
+158 
 	$’‹r_fÜked_´oûss
 (
 Œ­äame
@@ -4165,11 +3921,11 @@ t_lhigh_couÁ
 tf
 )
 
-214 ()
+160 ()
 tf
 ;
 
-215 
+161 
 	}
 }
 
@@ -11088,62 +10844,44 @@ h
  ../../
 šşude
 /
-f‘abË
+cu¼’t
 .h \
 
-10 ../../
-šşude
+10 
+šşud–šks
 /
-lim™s
+machše
+/
+cu¼’t
 .
 h
- ../../šşude/
-k”n
-/lim™s.h ../../šşude/
-synch
+ inşud–šks/
+ms
+/
+b
 .h \
 
 11 ../../
 šşude
 /
-cu¼’t
+addr¥aû
 .
 h
- 
+ ../../šşude/
+vm
+.h 
 šşud–šks
 /
 machše
-/current.h \
+/vm.h \
 
 12 
-šşud–šks
-/
-ms
-/
-b
-.
-h
- ../../
-šşude
-/
-addr¥aû
-.h ../../šşude/
-vm
-.h \
-
-13 
-šşud–šks
-/
-machše
-/
-vm
-.
-h
- 
 İt
 -
 dumbvm
-.h
+.
+h
+
 
 	@compile/DUMBVM/.depend.emu.c
 
@@ -12854,70 +12592,52 @@ h
  ../../
 šşude
 /
-f‘abË
+cu¼’t
 .h \
 
-10 ../../
-šşude
+10 
+šşud–šks
 /
-lim™s
+machše
+/
+cu¼’t
 .
 h
- ../../šşude/
-k”n
-/lim™s.h ../../šşude/
-synch
+ ../../
+šşude
+/
+addr¥aû
 .h \
 
 11 ../../
 šşude
 /
-cu¼’t
+vm
 .
 h
  
 šşud–šks
 /
 machše
-/current.h \
+/vm.h 
+İt
+-
+dumbvm
+.h \
 
 12 ../../
 šşude
 /
-addr¥aû
+vnode
 .
 h
  ../../šşude/
-vm
+–f
 .h 
 šşud–šks
 /
 machše
-/vm.h \
-
-13 
-İt
--
-dumbvm
-.
-h
- ../../
-šşude
-/
-vnode
-.h ../../šşude/
-–f
-.h \
-
-14 
-šşud–šks
-/
-machše
-/
-–f
-.
-h
-
+/elf.h
 
 	@compile/DUMBVM/.depend.lrandom.c
 
@@ -14142,70 +13862,60 @@ machše
 .
 h
  ../../šşude/
-f‘abË
-.h ../../šşude/
-lim™s
+cu¼’t
 .h \
 
-12 ../../
-šşude
+12 
+šşud–šks
 /
-k”n
-/
-lim™s
-.
-h
- ../../šşude/
-synch
-.h \
-
-13 ../../
-šşude
+machše
 /
 cu¼’t
 .
 h
- 
+ ../../
+šşude
+/
+synch
+.h ../../šşude/
+vm
+.h \
+
+13 
 šşud–šks
 /
 machše
-/current.h \
-
-14 ../../
-šşude
 /
 vm
 .
 h
- 
-šşud–šks
+ ../../
+šşude
 /
-machše
-/vm.h ../../šşude/
 mašbus
+.h ../../šşude/
+vfs
+.h \
+
+14 ../../
+šşude
+/
+deviû
+.
+h
+ ../../šşude/
+sysÿÎ
+.h ../../šşude/
+‹¡
 .h \
 
 15 ../../
 šşude
 /
-vfs
-.
-h
- ../../šşude/
-deviû
-.h ../../šşude/
-sysÿÎ
-.h \
-
-16 ../../
-šşude
-/
-‹¡
-.
-h
- ../../šşude/
 v”siÚ
-.h 
+.
+h
+ 
 autocÚf
 .h
 
@@ -14710,48 +14420,40 @@ h
 13 ../../
 šşude
 /
-f‘abË
+vfs
 .
 h
  ../../šşude/
-synch
+sfs
 .h ../../šşude/
-vfs
+fs
 .h \
 
 14 ../../
 šşude
 /
-sfs
+vnode
 .
 h
  ../../šşude/
-fs
+k”n
+/
+sfs
 .h ../../šşude/
-vnode
+sysÿÎ
 .h \
 
 15 ../../
 šşude
 /
-k”n
-/
-sfs
+‹¡
 .
 h
- ../../šşude/
-sysÿÎ
-.h ../../šşude/
-‹¡
-.h \
-
-16 
+ 
 İt
 -
 sfs
-.
-h
- o±-
+.h o±-
 Ãt
 .h
 
@@ -15272,28 +14974,6 @@ machše
 9 ../../
 šşude
 /
-f‘abË
-.
-h
- ../../šşude/
-lim™s
-.h \
-
-10 ../../
-šşude
-/
-k”n
-/
-lim™s
-.
-h
- ../../šşude/
-synch
-.h \
-
-11 ../../
-šşude
-/
 cu¼’t
 .
 h
@@ -15303,7 +14983,7 @@ h
 machše
 /current.h \
 
-12 ../../
+10 ../../
 šşude
 /
 addr¥aû
@@ -15317,7 +14997,7 @@ vm
 machše
 /vm.h \
 
-13 
+11 
 İt
 -
 dumbvm
@@ -15327,19 +15007,7 @@ h
 šşude
 /
 vnode
-.h ../../šşude/
-k”n
-/
-fú
-.h \
-
-14 ../../
-šşude
-/
-vfs
-.
-h
-
+.h
 
 	@compile/DUMBVM/.depend.qdivrem.c
 
@@ -15982,68 +15650,50 @@ h
  ../../
 šşude
 /
-f‘abË
+cu¼’t
 .h \
 
-10 ../../
-šşude
+10 
+šşud–šks
 /
-lim™s
+machše
+/
+cu¼’t
 .
 h
- ../../šşude/
-k”n
-/lim™s.h ../../šşude/
-synch
+ ../../
+šşude
+/
+addr¥aû
 .h \
 
 11 ../../
 šşude
 /
-cu¼’t
+vm
 .
 h
  
 šşud–šks
 /
 machše
-/current.h \
+/vm.h 
+İt
+-
+dumbvm
+.h \
 
 12 ../../
 šşude
 /
-addr¥aû
+vfs
 .
 h
  ../../šşude/
-vm
-.h 
-šşud–šks
-/
-machše
-/vm.h \
-
-13 
-İt
--
-dumbvm
-.
-h
- ../../
-šşude
-/
-vfs
-.h ../../šşude/
 sysÿÎ
-.h \
-
-14 ../../
-šşude
-/
+.h ../../šşude/
 ‹¡
-.
-h
-
+.h
 
 	@compile/DUMBVM/.depend.semfs_fsops.c
 
@@ -16480,24 +16130,10 @@ machše
 .
 h
  ../../šşude/
-f‘abË
-.h ../../šşude/
-lim™s
-.h \
-
-13 ../../
-šşude
-/
-k”n
-/
-lim™s
-.
-h
- ../../šşude/
 cu¼’t
 .h \
 
-14 
+13 
 šşud–šks
 /
 machše
@@ -16513,7 +16149,7 @@ vfs
 vnode
 .h \
 
-15 ../../
+14 ../../
 fs
 /
 £mfs
@@ -18915,16 +18551,6 @@ h
 šşude
 /
 sysÿÎ
-.h \
-
-11 ../../
-šşude
-/
-fe_sysÿÎs
-.
-h
- ../../šşude/
-cİyšout
 .h
 
 	@compile/DUMBVM/.depend.thread.c
@@ -19070,28 +18696,6 @@ h
 11 ../../
 šşude
 /
-f‘abË
-.
-h
- ../../šşude/
-lim™s
-.h \
-
-12 ../../
-šşude
-/
-k”n
-/
-lim™s
-.
-h
- ../../šşude/
-synch
-.h \
-
-13 ../../
-šşude
-/
 cu¼’t
 .
 h
@@ -19101,33 +18705,39 @@ h
 machše
 /current.h \
 
-14 ../../
+12 ../../
 šşude
 /
-addr¥aû
+synch
 .
 h
  ../../šşude/
+addr¥aû
+.h ../../šşude/
 vm
-.h 
+.h \
+
+13 
 İt
 -
 dumbvm
-.h \
-
-15 ../../
+.
+h
+ ../../
 šşude
 /
 mašbus
-.
-h
- ../../šşude/
+.h ../../šşude/
 vnode
-.h 
+.h \
+
+14 
 İt
 -
 synch´obs
-.h
+.
+h
+
 
 	@compile/DUMBVM/.depend.thread_machdep.c
 
@@ -20342,40 +19952,22 @@ h
  ../../
 šşude
 /
-f‘abË
+cu¼’t
 .h \
 
-9 ../../
-šşude
+9 
+šşud–šks
 /
-lim™s
-.
-h
- ../../šşude/
-k”n
-/lim™s.h ../../šşude/
-synch
-.h \
-
-10 ../../
-šşude
+machše
 /
 cu¼’t
 .
 h
- 
-šşud–šks
-/
-machše
-/current.h \
-
-11 ../../
+ ../../
 šşude
 /
 cİyšout
-.
-h
-
+.h
 
 	@compile/DUMBVM/.depend.umoddi3.c
 
@@ -20614,44 +20206,32 @@ h
  ../../
 šşude
 /
-f‘abË
+cu¼’t
 .h \
 
-12 ../../
-šşude
+12 
+šşud–šks
 /
-lim™s
+machše
+/
+cu¼’t
 .
 h
- ../../šşude/
-k”n
-/lim™s.h ../../šşude/
-synch
+ ../../
+šşude
+/
+vfs
+.h ../../šşude/
+fs
 .h \
 
 13 ../../
 šşude
 /
-cu¼’t
-.
-h
- 
-šşud–šks
-/
-machše
-/current.h \
-
-14 ../../
-šşude
-/
-vfs
-.
-h
- ../../šşude/
-fs
-.h ../../šşude/
 vnode
-.h
+.
+h
+
 
 	@compile/DUMBVM/.depend.vfsfail.c
 
@@ -23235,7 +22815,7 @@ _OPT_SFS_H_
 
 2 cÚ¡ 
 	gbudv”siÚ
- = 88;
+ = 25;
 
 3 cÚ¡ 
 	gbudcÚfig
@@ -54119,83 +53699,57 @@ _PROC_H_
 	~<th»ad.h
 >
 
-41 
-	~<f‘abË.h
->
-
-42 
-	~<lim™s.h
->
-
-43 
-	~<synch.h
->
-
-45 
+42 
 	gaddr¥aû
 ;
 
-46 
+43 
 	gvnode
 ;
 
-51 
+48 
 	s´oc
  {
 
-52 *
+49 *
 	mp_Çme
 ;
 
-53 
+50 
 ¥šlock
  
 	mp_lock
 ;
 
-54 
+51 
 th»ad¬¿y
  
 	mp_th»ads
 ;
 
-57 
+54 
 addr¥aû
  *
 	mp_addr¥aû
 ;
 
-60 
+57 
 vnode
  *
 	mp_cwd
 ;
 
-65 
-f‘abË_’Œy
- *
-	mf‘abË
-[
-OPEN_MAX
-];
-
-66 
-lock
- *
-	mf‘abË_lock
-;
-
-70 
+63 
 ´oc
  *
 k´oc
 ;
 
-73 
+66 
 ´oc_boÙ¡¿p
 ();
 
-76 
+69 
 ´oc
  *
 ´oc_ü—‹_ruÅrog¿m
@@ -54203,13 +53757,13 @@ k´oc
 Çme
 );
 
-79 
+72 
 ´oc_de¡roy
 (
 ´oc
  *proc);
 
-82 
+75 
 ´oc_addth»ad
 (
 ´oc
@@ -54219,7 +53773,7 @@ th»ad
 t
 );
 
-85 
+78 
 ´oc_»mth»ad
 (
 th»ad
@@ -54227,13 +53781,13 @@ th»ad
 t
 );
 
-88 
+81 
 addr¥aû
  *
 ´oc_g‘as
 ();
 
-91 
+84 
 addr¥aû
  *
 ´oc_£s
@@ -61025,11 +60579,11 @@ cmd_´ogth»ad
 »suÉ
 ;
 
-148 
+146 
 	}
 }
 
-155 
+153 
 	$cmd_´og
 (
 Çrgs
@@ -61037,27 +60591,27 @@ cmd_´ogth»ad
 ¬gs
 )
 
-157 ià(
+155 ià(
 Çrgs
  < 2) {
 
-158 
+156 
 	`k´štf
 ("Usage:……rogram [arguments]\n");
 
-159  
+157  
 EINVAL
 ;
 
-163 
+161 
 ¬gs
 ++;
 
-164 
+162 
 Çrgs
 --;
 
-166  
+164  
 	`commÚ_´og
 (
 Çrgs
@@ -61065,11 +60619,11 @@ EINVAL
 ¬gs
 );
 
-167 
+165 
 	}
 }
 
-174 
+172 
 	$cmd_sh–l
 (
 Çrgs
@@ -61077,29 +60631,29 @@ EINVAL
 ¬gs
 )
 
-176 ()
+174 ()
 ¬gs
 ;
 
-177 ià(
+175 ià(
 Çrgs
  != 1) {
 
-178 
+176 
 	`k´štf
 ("Usage: s\n");
 
-179  
+177  
 EINVAL
 ;
 
-182 
+180 
 ¬gs
 [0] = (*)
 _PATH_SHELL
 ;
 
-184  
+182  
 	`commÚ_´og
 (
 Çrgs
@@ -61107,11 +60661,11 @@ _PATH_SHELL
 ¬gs
 );
 
-185 
+183 
 	}
 }
 
-192 
+190 
 	$cmd_chdœ
 (
 Çrgs
@@ -61119,29 +60673,29 @@ _PATH_SHELL
 ¬gs
 )
 
-194 ià(
+192 ià(
 Çrgs
  != 2) {
 
-195 
+193 
 	`k´štf
 ("Usage: cd directory\n");
 
-196  
+194  
 EINVAL
 ;
 
-199  
+197  
 	`vfs_chdœ
 (
 ¬gs
 [1]);
 
-200 
+198 
 	}
 }
 
-207 
+205 
 	$cmd_pwd
 (
 Çrgs
@@ -61149,37 +60703,37 @@ EINVAL
 ¬gs
 )
 
-209 
+207 
 buf
 [
 PATH_MAX
 +1];
 
-210 
+208 
 »suÉ
 ;
 
-211 
+209 
 iovec
  
 iov
 ;
 
-212 
+210 
 uio
  
 ku
 ;
 
-214 ()
+212 ()
 Çrgs
 ;
 
-215 ()
+213 ()
 ¬gs
 ;
 
-217 
+215 
 	`uio_kš™
 (&
 iov
@@ -61191,7 +60745,7 @@ buf
 UIO_READ
 );
 
-218 
+216 
 »suÉ
  = 
 	`vfs_g‘cwd
@@ -61199,11 +60753,11 @@ UIO_READ
 ku
 );
 
-219 ià(
+217 ià(
 »suÉ
 ) {
 
-220 
+218 
 	`k´štf
 ("vfs_g‘cwd faed (%s)\n", 
 	`¡»¼Ü
@@ -61211,11 +60765,11 @@ ku
 »suÉ
 ));
 
-221  
+219  
 »suÉ
 ;
 
-225 
+223 
 buf
 [(buf)-1-
 ku
@@ -61223,17 +60777,17 @@ ku
 uio_»sid
 ] = 0;
 
-228 
+226 
 	`k´štf
 ("%s\n", 
 buf
 );
 
-231 
+229 
 	}
 }
 
-238 
+236 
 	$cmd_sync
 (
 Çrgs
@@ -61241,23 +60795,23 @@ buf
 ¬gs
 )
 
-240 ()
+238 ()
 Çrgs
 ;
 
-241 ()
+239 ()
 ¬gs
 ;
 
-243 
+241 
 	`vfs_sync
 ();
 
-246 
+244 
 	}
 }
 
-253 
+251 
 	$cmd_·nic
 (
 Çrgs
@@ -61265,23 +60819,23 @@ buf
 ¬gs
 )
 
-255 ()
+253 ()
 Çrgs
 ;
 
-256 ()
+254 ()
 ¬gs
 ;
 
-258 
+256 
 	`·nic
 ("User„equested…anic\n");
 
-260 
+258 
 	}
 }
 
-267 
+265 
 	$cmd_qu™
 (
 Çrgs
@@ -61289,55 +60843,55 @@ buf
 ¬gs
 )
 
-269 ()
+267 ()
 Çrgs
 ;
 
-270 ()
+268 ()
 ¬gs
 ;
 
-272 
+270 
 	`vfs_sync
 ();
 
-273 
+271 
 	`sys_»boÙ
 (
 RB_POWEROFF
 );
 
-274 
+272 
 	`th»ad_ex™
 ();
 
-276 
+274 
 	}
 }
 
-284 cÚ¡ *
+282 cÚ¡ *
 	mÇme
 ;
 
-285 (*
+283 (*
 	mfunc
 )(cÚ¡ *
 	mdeviû
 );
 
-286 } 
+284 } 
 	gmouÁbË
 [] = {
 
-287 #ià
+285 #ià
 OPT_SFS
 
 
-288 { "sfs", 
+286 { "sfs", 
 sfs_mouÁ
  },
 
-294 
+292 
 	$cmd_mouÁ
 (
 Çrgs
@@ -61345,55 +60899,55 @@ sfs_mouÁ
 ¬gs
 )
 
-296 *
+294 *
 f¡y³
 ;
 
-297 *
+295 *
 deviû
 ;
 
-298 
+296 
 i
 ;
 
-300 ià(
+298 ià(
 Çrgs
  != 3) {
 
-301 
+299 
 	`k´štf
 ("Usage: mount fstype device:\n");
 
-302  
+300  
 EINVAL
 ;
 
-305 
+303 
 f¡y³
  = 
 ¬gs
 [1];
 
-306 
+304 
 deviû
  = 
 ¬gs
 [2];
 
-309 ià(
+307 ià(
 deviû
 [
 	`¡¾’
 (device)-1]==':') {
 
-310 
+308 
 deviû
 [
 	`¡¾’
 (device)-1] = 0;
 
-313 
+311 
 i
 =0; i<
 	`ARRAYCOUNT
@@ -61401,7 +60955,7 @@ i
 mouÁbË
 ); i++) {
 
-314 ià(!
+312 ià(!
 	`¡rcmp
 (
 mouÁbË
@@ -61413,7 +60967,7 @@ i
 f¡y³
 )) {
 
-315  
+313  
 mouÁbË
 [
 i
@@ -61423,21 +60977,21 @@ i
 deviû
 );
 
-318 
+316 
 	`k´štf
 ("UnknowÀfesy¡emy³ %s\n", 
 f¡y³
 );
 
-319  
+317  
 EINVAL
 ;
 
-320 
+318 
 	}
 }
 
-324 
+322 
 	$cmd_unmouÁ
 (
 Çrgs
@@ -61445,51 +60999,51 @@ EINVAL
 ¬gs
 )
 
-326 *
+324 *
 deviû
 ;
 
-328 ià(
+326 ià(
 Çrgs
  != 2) {
 
-329 
+327 
 	`k´štf
 ("Usage: unmount device:\n");
 
-330  
+328  
 EINVAL
 ;
 
-333 
+331 
 deviû
  = 
 ¬gs
 [1];
 
-336 ià(
+334 ià(
 deviû
 [
 	`¡¾’
 (device)-1]==':') {
 
-337 
+335 
 deviû
 [
 	`¡¾’
 (device)-1] = 0;
 
-340  
+338  
 	`vfs_unmouÁ
 (
 deviû
 );
 
-341 
+339 
 	}
 }
 
-353 
+351 
 	$cmd_boÙfs
 (
 Çrgs
@@ -61497,51 +61051,51 @@ deviû
 ¬gs
 )
 
-355 *
+353 *
 deviû
 ;
 
-357 ià(
+355 ià(
 Çrgs
  != 2) {
 
-358 
+356 
 	`k´štf
 ("Usage: bootfs device\n");
 
-359  
+357  
 EINVAL
 ;
 
-362 
+360 
 deviû
  = 
 ¬gs
 [1];
 
-365 ià(
+363 ià(
 deviû
 [
 	`¡¾’
 (device)-1]==':') {
 
-366 
+364 
 deviû
 [
 	`¡¾’
 (device)-1] = 0;
 
-369  
+367  
 	`vfs_£tboÙfs
 (
 deviû
 );
 
-370 
+368 
 	}
 }
 
-374 
+372 
 	$cmd_kh—p¡©s
 (
 Çrgs
@@ -61549,23 +61103,23 @@ deviû
 ¬gs
 )
 
-376 ()
+374 ()
 Çrgs
 ;
 
-377 ()
+375 ()
 ¬gs
 ;
 
-379 
+377 
 	`kh—p_´št¡©s
 ();
 
-382 
+380 
 	}
 }
 
-386 
+384 
 	$cmd_kh—pg’”©iÚ
 (
 Çrgs
@@ -61573,23 +61127,23 @@ deviû
 ¬gs
 )
 
-388 ()
+386 ()
 Çrgs
 ;
 
-389 ()
+387 ()
 ¬gs
 ;
 
-391 
+389 
 	`kh—p_Ãxtg’”©iÚ
 ();
 
-394 
+392 
 	}
 }
 
-398 
+396 
 	$cmd_kh—pdump
 (
 Çrgs
@@ -61597,15 +61151,15 @@ deviû
 ¬gs
 )
 
-400 ià(
+398 ià(
 Çrgs
  == 1) {
 
-401 
+399 
 	`kh—p_dump
 ();
 
-403 ià(
+401 ià(
 Çrgs
  =ğ2 && !
 	`¡rcmp
@@ -61613,19 +61167,19 @@ deviû
 ¬gs
 [1], "all")) {
 
-404 
+402 
 	`kh—p_dum·Î
 ();
 
-407 
+405 
 	`k´štf
 ("Usage: khdump [all]\n");
 
-411 
+409 
 	}
 }
 
-419 
+417 
 	$showm’u
 (cÚ¡ *
 Çme
@@ -61633,7 +61187,7 @@ deviû
 x
 [])
 
-421 
+419 
 ù
 , 
 h®f
@@ -61641,17 +61195,17 @@ h®f
 i
 ;
 
-423 
+421 
 	`k´štf
 ("\n");
 
-424 
+422 
 	`k´štf
 ("%s\n", 
 Çme
 );
 
-426 
+424 
 i
 =
 ù
@@ -61659,23 +61213,23 @@ i
 x
 [i]; i++) {
 
-427 
+425 
 ù
 ++;
 
-429 
+427 
 h®f
  = (
 ù
 +1)/2;
 
-431 
+429 
 i
 =0; i<
 h®f
 ; i++) {
 
-432 
+430 
 	`k´štf
 (" %-36s", 
 x
@@ -61683,7 +61237,7 @@ x
 i
 ]);
 
-433 ià(
+431 ià(
 i
 +
 h®f
@@ -61691,7 +61245,7 @@ h®f
 ù
 ) {
 
-434 
+432 
 	`k´štf
 ("%s", 
 x
@@ -61701,27 +61255,27 @@ i
 h®f
 ]);
 
-436 
+434 
 	`k´štf
 ("\n");
 
-439 
+437 
 	`k´štf
 ("\n");
 
-440 
+438 
 	}
 }
 
-442 cÚ¡ *
+440 cÚ¡ *
 	gİsm’u
 [] = {
 
-454 
+452 
 NULL
 
 
-459 
+457 
 	$cmd_İsm’u
 (
 n
@@ -61729,37 +61283,37 @@ n
 a
 )
 
-461 ()
+459 ()
 n
 ;
 
-462 ()
+460 ()
 a
 ;
 
-464 
+462 
 	`showm’u
 ("OS/161 o³¿tiÚ m’u", 
 İsm’u
 );
 
-466 
+464 
 	}
 }
 
-468 cÚ¡ *
+466 cÚ¡ *
 	g‹¡m’u
 [] = {
 
-479 #ià
+477 #ià
 OPT_NET
 
 
-492 
+490 
 NULL
 
 
-497 
+495 
 	$cmd_‹¡m’u
 (
 n
@@ -61767,45 +61321,45 @@ n
 a
 )
 
-499 ()
+497 ()
 n
 ;
 
-500 ()
+498 ()
 a
 ;
 
-502 
+500 
 	`showm’u
 ("OS/161e¡ m’u", 
 ‹¡m’u
 );
 
-503 
+501 
 	`k´štf
 (" (1) Theseests will fail until you finishhe "
 
-505 
+503 
 	`k´štf
 ("\n");
 
-508 
+506 
 	}
 }
 
-510 cÚ¡ *
+508 cÚ¡ *
 	gmašm’u
 [] = {
 
-513 #ià
+511 #ià
 OPT_SYNCHPROBS
 
 
-520 
+518 
 NULL
 
 
-525 
+523 
 	$cmd_mašm’u
 (
 n
@@ -61813,29 +61367,29 @@ n
 a
 )
 
-527 ()
+525 ()
 n
 ;
 
-528 ()
+526 ()
 a
 ;
 
-530 
+528 
 	`showm’u
 ("OS/161 k”ÃÈm’u", 
 mašm’u
 );
 
-532 
+530 
 	}
 }
 
-539 cÚ¡ *
+537 cÚ¡ *
 	mÇme
 ;
 
-540 (*
+538 (*
 	mfunc
 )(
 	mÇrgs
@@ -61843,201 +61397,201 @@ mašm’u
 	m¬gs
 );
 
-541 } 
+539 } 
 	gcmdbË
 [] = {
 
-543 { "?", 
+541 { "?", 
 cmd_mašm’u
  },
 
-544 { "h", 
+542 { "h", 
 cmd_mašm’u
  },
 
-545 { "h–p", 
+543 { "h–p", 
 cmd_mašm’u
  },
 
-546 { "?o", 
+544 { "?o", 
 cmd_İsm’u
  },
 
-547 { "?t", 
+545 { "?t", 
 cmd_‹¡m’u
  },
 
-550 { "s", 
+548 { "s", 
 cmd_sh–l
  },
 
-551 { "p", 
+549 { "p", 
 cmd_´og
  },
 
-552 { "mouÁ", 
+550 { "mouÁ", 
 cmd_mouÁ
  },
 
-553 { "unmouÁ", 
+551 { "unmouÁ", 
 cmd_unmouÁ
  },
 
-554 { "boÙfs", 
+552 { "boÙfs", 
 cmd_boÙfs
  },
 
-555 { "pf", 
+553 { "pf", 
 ´štfe
  },
 
-556 { "cd", 
+554 { "cd", 
 cmd_chdœ
  },
 
-557 { "pwd", 
+555 { "pwd", 
 cmd_pwd
  },
 
-558 { "sync", 
+556 { "sync", 
 cmd_sync
  },
 
-559 { "·nic", 
+557 { "·nic", 
 cmd_·nic
  },
 
-560 { "q", 
+558 { "q", 
 cmd_qu™
  },
 
-561 { "ex™", 
+559 { "ex™", 
 cmd_qu™
  },
 
-562 { "h®t", 
+560 { "h®t", 
 cmd_qu™
  },
 
-564 #ià
+562 #ià
 OPT_SYNCHPROBS
 
 
-566 { "¥1", 
+564 { "¥1", 
 aœb®loÚ
  },
 
-570 { "kh", 
+568 { "kh", 
 cmd_kh—p¡©s
  },
 
-571 { "khg’", 
+569 { "khg’", 
 cmd_kh—pg’”©iÚ
  },
 
-572 { "khdump", 
+570 { "khdump", 
 cmd_kh—pdump
  },
 
-575 { "©", 
+573 { "©", 
 ¬¿y‹¡
  },
 
-576 { "bt", 
+574 { "bt", 
 b™m­‹¡
  },
 
-577 { "t", 
+575 { "t", 
 th»adli¡‹¡
  },
 
-578 { "km1", 
+576 { "km1", 
 m®loùe¡
  },
 
-579 { "km2", 
+577 { "km2", 
 m®loc¡»ss
  },
 
-580 { "km3", 
+578 { "km3", 
 m®loùe¡3
  },
 
-581 { "km4", 
+579 { "km4", 
 m®loùe¡4
  },
 
-582 #ià
+580 #ià
 OPT_NET
 
 
-583 { "Ãt", 
+581 { "Ãt", 
 Ã‰e¡
  },
 
-585 { "‰1", 
+583 { "‰1", 
 th»ad‹¡
  },
 
-586 { "‰2", 
+584 { "‰2", 
 th»ad‹¡2
  },
 
-587 { "‰3", 
+585 { "‰3", 
 th»ad‹¡3
  },
 
-588 { "sy1", 
+586 { "sy1", 
 £m‹¡
  },
 
-591 { "sy2", 
+589 { "sy2", 
 lock‹¡
  },
 
-592 { "sy3", 
+590 { "sy3", 
 cv‹¡
  },
 
-593 { "sy4", 
+591 { "sy4", 
 cv‹¡2
  },
 
-596 { "fs1", 
+594 { "fs1", 
 f¡e¡
  },
 
-597 { "fs2", 
+595 { "fs2", 
 »ad¡»ss
  },
 
-598 { "fs3", 
+596 { "fs3", 
 wr™e¡»ss
  },
 
-599 { "fs4", 
+597 { "fs4", 
 wr™e¡»ss2
  },
 
-600 { "fs5", 
+598 { "fs5", 
 lÚg¡»ss
  },
 
-601 { "fs6", 
+599 { "fs6", 
 ü—‹¡»ss
  },
 
-603 { 
+601 { 
 NULL
 , NULL }
 
-611 
+609 
 	$cmd_di¥©ch
 (*
 cmd
 )
 
-613 
+611 
 time¥ec
  
 befÜe
@@ -62047,31 +61601,31 @@ aá”
 du¿tiÚ
 ;
 
-614 *
+612 *
 ¬gs
 [
 MAXMENUARGS
 ];
 
-615 
+613 
 Çrgs
 =0;
 
-616 *
+614 *
 wÜd
 ;
 
-617 *
+615 *
 cÚ‹xt
 ;
 
-618 
+616 
 i
 , 
 »suÉ
 ;
 
-620 
+618 
 wÜd
  = 
 	`¡¹ok_r
@@ -62081,13 +61635,13 @@ cmd
 cÚ‹xt
 );
 
-621 
+619 
 wÜd
  !ğ
 NULL
 ;
 
-622 
+620 
 wÜd
  = 
 	`¡¹ok_r
@@ -62097,21 +61651,21 @@ NULL
 cÚ‹xt
 )) {
 
-624 ià(
+622 ià(
 Çrgs
  >ğ
 MAXMENUARGS
 ) {
 
-625 
+623 
 	`k´štf
 ("Command†ine hasoo many words\n");
 
-626  
+624  
 E2BIG
 ;
 
-628 
+626 
 ¬gs
 [
 Çrgs
@@ -62119,11 +61673,11 @@ E2BIG
 wÜd
 ;
 
-631 ià(
+629 ià(
 Çrgs
 ==0) {
 
-635 
+633 
 i
 =0; 
 cmdbË
@@ -62131,7 +61685,7 @@ cmdbË
 Çme
 ; i++) {
 
-636 ià(*
+634 ià(*
 cmdbË
 [
 i
@@ -62143,7 +61697,7 @@ i
 ¬gs
 [0], cmdtable[i].name)) {
 
-637 
+635 
 	`KASSERT
 (
 cmdbË
@@ -62155,13 +61709,13 @@ func
 NULL
 );
 
-639 
+637 
 	`g‘time
 (&
 befÜe
 );
 
-641 
+639 
 »suÉ
  = 
 cmdbË
@@ -62175,13 +61729,13 @@ i
 ¬gs
 );
 
-643 
+641 
 	`g‘time
 (&
 aá”
 );
 
-644 
+642 
 	`time¥ec_sub
 (&
 aá”
@@ -62191,41 +61745,41 @@ befÜe
 du¿tiÚ
 );
 
-646 
+644 
 	`k´štf
 ("Operationook %llu.%09lu seconds\n",
 
-647 (è
+645 (è
 du¿tiÚ
 .
 tv_£c
 ,
 
-648 (è
+646 (è
 du¿tiÚ
 .
 tv_n£c
 );
 
-650  
+648  
 »suÉ
 ;
 
-654 
+652 
 	`k´štf
 ("%s: Commªd‚Ù found\n", 
 ¬gs
 [0]);
 
-655  
+653  
 EINVAL
 ;
 
-656 
+654 
 	}
 }
 
-667 
+665 
 	$m’u_execu‹
 (*
 lše
@@ -62233,19 +61787,19 @@ lše
 i§rgs
 )
 
-669 *
+667 *
 commªd
 ;
 
-670 *
+668 *
 cÚ‹xt
 ;
 
-671 
+669 
 »suÉ
 ;
 
-673 
+671 
 commªd
  = 
 	`¡¹ok_r
@@ -62255,13 +61809,13 @@ lše
 cÚ‹xt
 );
 
-674 
+672 
 commªd
  !ğ
 NULL
 ;
 
-675 
+673 
 commªd
  = 
 	`¡¹ok_r
@@ -62271,17 +61825,17 @@ NULL
 cÚ‹xt
 )) {
 
-677 ià(
+675 ià(
 i§rgs
 ) {
 
-678 
+676 
 	`k´štf
 ("OS/161 k”Ãl: %s\n", 
 commªd
 );
 
-681 
+679 
 »suÉ
  = 
 	`cmd_di¥©ch
@@ -62289,11 +61843,11 @@ commªd
 commªd
 );
 
-682 ià(
+680 ià(
 »suÉ
 ) {
 
-683 
+681 
 	`k´štf
 ("M’u commªd faed: %s\n", 
 	`¡»¼Ü
@@ -62301,51 +61855,51 @@ commªd
 »suÉ
 ));
 
-684 ià(
+682 ià(
 i§rgs
 ) {
 
-685 
+683 
 	`·nic
 ("Failure…rocessing kernel‡rguments\n");
 
-689 
+687 
 	}
 }
 
-709 
+707 
 	$m’u
 (*
 ¬gs
 )
 
-711 
+709 
 buf
 [64];
 
-713 
+711 
 	`m’u_execu‹
 (
 ¬gs
 , 1);
 
-716 
+714 
 	`k´štf
 ("OS/161 kernel [? for menu]: ");
 
-717 
+715 
 	`kg‘s
 (
 buf
 , (buf));
 
-718 
+716 
 	`m’u_execu‹
 (
 buf
 , 0);
 
-722 
+718 
 	}
 }
 
@@ -62375,63 +61929,43 @@ buf
 	~<vnode.h
 >
 
-52 
-	~<f‘abË.h
->
-
-53 
-	~<lim™s.h
->
-
-54 
-	~<k”n/fú.h
->
-
-55 
-	~<synch.h
->
-
-56 
-	~<vfs.h
->
-
-61 
+55 
 ´oc
  *
 	gk´oc
 ;
 
-67 
+61 
 ´oc
  *
 
-68 
+62 
 	$´oc_ü—‹
 (cÚ¡ *
 Çme
 )
 
-70 
+64 
 ´oc
  *proc;
 
-72 
+66 
 ´oc
  = 
 	`km®loc
 ((*proc));
 
-73 ià(
+67 ià(
 ´oc
  =ğ
 NULL
 ) {
 
-74  
+68  
 NULL
 ;
 
-76 
+70 
 ´oc
 ->
 p_Çme
@@ -62441,7 +61975,7 @@ p_Çme
 Çme
 );
 
-77 ià(
+71 ià(
 ´oc
 ->
 p_Çme
@@ -62449,17 +61983,17 @@ p_Çme
 NULL
 ) {
 
-78 
+72 
 	`kä“
 (
 ´oc
 );
 
-79  
+73  
 NULL
 ;
 
-82 
+76 
 	`th»ad¬¿y_š™
 (&
 ´oc
@@ -62467,7 +62001,7 @@ NULL
 p_th»ads
 );
 
-83 
+77 
 	`¥šlock_š™
 (&
 ´oc
@@ -62475,7 +62009,7 @@ p_th»ads
 p_lock
 );
 
-86 
+80 
 ´oc
 ->
 p_addr¥aû
@@ -62483,7 +62017,7 @@ p_addr¥aû
 NULL
 ;
 
-89 
+83 
 ´oc
 ->
 p_cwd
@@ -62491,49 +62025,21 @@ p_cwd
 NULL
 ;
 
-92 
-i
-;
-
-93 
-i
-=0; i<
-OPEN_MAX
-; i++) {
-
-94 
-´oc
-->
-f‘abË
-[
-i
-] = 
-NULL
-;
-
-98 
-´oc
-->
-f‘abË_lock
- = 
-	`lock_ü—‹
-("filetable_lock");
-
-100  
+85  
 ´oc
 ;
 
-101 
+86 
 	}
 }
 
-110 
+95 
 	$´oc_de¡roy
 (
 ´oc
  *proc)
 
-120 
+105 
 	`KASSERT
 (
 ´oc
@@ -62541,7 +62047,7 @@ f‘abË_lock
 NULL
 );
 
-121 
+106 
 	`KASSERT
 (
 ´oc
@@ -62549,13 +62055,13 @@ NULL
 k´oc
 );
 
-130 ià(
+115 ià(
 ´oc
 ->
 p_cwd
 ) {
 
-131 
+116 
 	`VOP_DECREF
 (
 ´oc
@@ -62563,7 +62069,7 @@ p_cwd
 p_cwd
 );
 
-132 
+117 
 ´oc
 ->
 p_cwd
@@ -62571,25 +62077,25 @@ p_cwd
 NULL
 ;
 
-136 ià(
+121 ià(
 ´oc
 ->
 p_addr¥aû
 ) {
 
-170 
+155 
 addr¥aû
  *
 as
 ;
 
-172 ià(
+157 ià(
 ´oc
  =ğ
 cu½roc
 ) {
 
-173 
+158 
 as
  = 
 	`´oc_£s
@@ -62597,11 +62103,11 @@ as
 NULL
 );
 
-174 
+159 
 	`as_d—ùiv©e
 ();
 
-177 
+162 
 as
  = 
 ´oc
@@ -62609,7 +62115,7 @@ as
 p_addr¥aû
 ;
 
-178 
+163 
 ´oc
 ->
 p_addr¥aû
@@ -62617,13 +62123,13 @@ p_addr¥aû
 NULL
 ;
 
-180 
+165 
 	`as_de¡roy
 (
 as
 );
 
-183 
+168 
 	`th»ad¬¿y_ş—nup
 (&
 ´oc
@@ -62631,7 +62137,7 @@ as
 p_th»ads
 );
 
-184 
+169 
 	`¥šlock_ş—nup
 (&
 ´oc
@@ -62639,35 +62145,7 @@ p_th»ads
 p_lock
 );
 
-187 
-i
-;
-
-188 
-i
-=0; i<
-OPEN_MAX
-; i++) {
-
-189 
-´oc
-->
-f‘abË
-[
-i
-] = 
-NULL
-;
-
-191 
-	`lock_de¡roy
-(
-´oc
-->
-f‘abË_lock
-);
-
-193 
+171 
 	`kä“
 (
 ´oc
@@ -62675,57 +62153,57 @@ f‘abË_lock
 p_Çme
 );
 
-194 
+172 
 	`kä“
 (
 ´oc
 );
 
-195 
+173 
 	}
 }
 
-201 
+179 
 	$´oc_boÙ¡¿p
 ()
 
-203 
+181 
 k´oc
  = 
 	`´oc_ü—‹
 ("[kernel]");
 
-204 ià(
+182 ià(
 k´oc
  =ğ
 NULL
 ) {
 
-205 
+183 
 	`·nic
 ("proc_create for kproc failed\n");
 
-207 
+185 
 	}
 }
 
-215 
+193 
 ´oc
  *
 
-216 
+194 
 	$´oc_ü—‹_ruÅrog¿m
 (cÚ¡ *
 Çme
 )
 
-218 
+196 
 ´oc
  *
 Ãw´oc
 ;
 
-220 
+198 
 Ãw´oc
  = 
 	`´oc_ü—‹
@@ -62733,17 +62211,17 @@ NULL
 Çme
 );
 
-221 ià(
+199 ià(
 Ãw´oc
  =ğ
 NULL
 ) {
 
-222  
+200  
 NULL
 ;
 
-227 
+205 
 Ãw´oc
 ->
 p_addr¥aû
@@ -62751,7 +62229,7 @@ p_addr¥aû
 NULL
 ;
 
-236 
+214 
 	`¥šlock_acquœe
 (&
 cu½roc
@@ -62759,7 +62237,7 @@ cu½roc
 p_lock
 );
 
-237 ià(
+215 ià(
 cu½roc
 ->
 p_cwd
@@ -62767,7 +62245,7 @@ p_cwd
 NULL
 ) {
 
-238 
+216 
 	`VOP_INCREF
 (
 cu½roc
@@ -62775,7 +62253,7 @@ cu½roc
 p_cwd
 );
 
-239 
+217 
 Ãw´oc
 ->
 p_cwd
@@ -62783,7 +62261,7 @@ p_cwd
 cu½roc
 ->p_cwd;
 
-241 
+219 
 	`¥šlock_»Ëa£
 (&
 cu½roc
@@ -62791,15 +62269,15 @@ cu½roc
 p_lock
 );
 
-243  
+221  
 Ãw´oc
 ;
 
-244 
+222 
 	}
 }
 
-256 
+234 
 	$´oc_addth»ad
 (
 ´oc
@@ -62809,15 +62287,15 @@ th»ad
 t
 )
 
-258 
+236 
 »suÉ
 ;
 
-259 
+237 
 ¥l
 ;
 
-261 
+239 
 	`KASSERT
 (
 t
@@ -62827,7 +62305,7 @@ t_´oc
 NULL
 );
 
-263 
+241 
 	`¥šlock_acquœe
 (&
 ´oc
@@ -62835,7 +62313,7 @@ NULL
 p_lock
 );
 
-264 
+242 
 »suÉ
  = 
 	`th»ad¬¿y_add
@@ -62849,7 +62327,7 @@ t
 NULL
 );
 
-265 
+243 
 	`¥šlock_»Ëa£
 (&
 ´oc
@@ -62857,21 +62335,21 @@ NULL
 p_lock
 );
 
-266 ià(
+244 ià(
 »suÉ
 ) {
 
-267  
+245  
 »suÉ
 ;
 
-269 
+247 
 ¥l
  = 
 	`¥lhigh
 ();
 
-270 
+248 
 t
 ->
 t_´oc
@@ -62879,17 +62357,17 @@ t_´oc
 ´oc
 ;
 
-271 
+249 
 	`¥lx
 (
 ¥l
 );
 
-273 
+251 
 	}
 }
 
-285 
+263 
 	$´oc_»mth»ad
 (
 th»ad
@@ -62897,21 +62375,21 @@ th»ad
 t
 )
 
-287 
+265 
 ´oc
  *proc;
 
-288 
+266 
 i
 , 
 num
 ;
 
-289 
+267 
 ¥l
 ;
 
-291 
+269 
 ´oc
  = 
 t
@@ -62919,7 +62397,7 @@ t
 t_´oc
 ;
 
-292 
+270 
 	`KASSERT
 (
 ´oc
@@ -62927,7 +62405,7 @@ t_´oc
 NULL
 );
 
-294 
+272 
 	`¥šlock_acquœe
 (&
 ´oc
@@ -62935,7 +62413,7 @@ NULL
 p_lock
 );
 
-296 
+274 
 num
  = 
 	`th»ad¬¿y_num
@@ -62945,13 +62423,13 @@ num
 p_th»ads
 );
 
-297 
+275 
 i
 =0; i<
 num
 ; i++) {
 
-298 ià(
+276 ià(
 	`th»ad¬¿y_g‘
 (&
 ´oc
@@ -62963,7 +62441,7 @@ i
 t
 ) {
 
-299 
+277 
 	`th»ad¬¿y_»move
 (&
 ´oc
@@ -62973,7 +62451,7 @@ p_th»ads
 i
 );
 
-300 
+278 
 	`¥šlock_»Ëa£
 (&
 ´oc
@@ -62981,13 +62459,13 @@ i
 p_lock
 );
 
-301 
+279 
 ¥l
  = 
 	`¥lhigh
 ();
 
-302 
+280 
 t
 ->
 t_´oc
@@ -62995,13 +62473,13 @@ t_´oc
 NULL
 ;
 
-303 
+281 
 	`¥lx
 (
 ¥l
 );
 
-308 
+286 
 	`¥šlock_»Ëa£
 (&
 ´oc
@@ -63009,7 +62487,7 @@ NULL
 p_lock
 );
 
-309 
+287 
 	`·nic
 ("Th»ad (%pèha esÿ³d from it ´oûs (%p)\n", 
 t
@@ -63017,41 +62495,41 @@ t
 ´oc
 );
 
-310 
+288 
 	}
 }
 
-320 
+298 
 addr¥aû
  *
 
-321 
+299 
 	$´oc_g‘as
 ()
 
-323 
+301 
 addr¥aû
  *
 as
 ;
 
-324 
+302 
 ´oc
  *´oøğ
 cu½roc
 ;
 
-326 ià(
+304 ià(
 ´oc
  =ğ
 NULL
 ) {
 
-327  
+305  
 NULL
 ;
 
-330 
+308 
 	`¥šlock_acquœe
 (&
 ´oc
@@ -63059,7 +62537,7 @@ NULL
 p_lock
 );
 
-331 
+309 
 as
  = 
 ´oc
@@ -63067,7 +62545,7 @@ as
 p_addr¥aû
 ;
 
-332 
+310 
 	`¥šlock_»Ëa£
 (&
 ´oc
@@ -63075,19 +62553,19 @@ p_addr¥aû
 p_lock
 );
 
-333  
+311  
 as
 ;
 
-334 
+312 
 	}
 }
 
-340 
+318 
 addr¥aû
  *
 
-341 
+319 
 	$´oc_£s
 (
 addr¥aû
@@ -63095,19 +62573,19 @@ addr¥aû
 Ãwas
 )
 
-343 
+321 
 addr¥aû
  *
 Şdas
 ;
 
-344 
+322 
 ´oc
  *´oøğ
 cu½roc
 ;
 
-346 
+324 
 	`KASSERT
 (
 ´oc
@@ -63115,7 +62593,7 @@ cu½roc
 NULL
 );
 
-348 
+326 
 	`¥šlock_acquœe
 (&
 ´oc
@@ -63123,7 +62601,7 @@ NULL
 p_lock
 );
 
-349 
+327 
 Şdas
  = 
 ´oc
@@ -63131,7 +62609,7 @@ p_lock
 p_addr¥aû
 ;
 
-350 
+328 
 ´oc
 ->
 p_addr¥aû
@@ -63139,7 +62617,7 @@ p_addr¥aû
 Ãwas
 ;
 
-351 
+329 
 	`¥šlock_»Ëa£
 (&
 ´oc
@@ -63147,11 +62625,11 @@ p_addr¥aû
 p_lock
 );
 
-352  
+330  
 Şdas
 ;
 
-353 
+331 
 	}
 }
 
@@ -64045,437 +63523,7 @@ vaddr_t
 »suÉ
 ;
 
-68 
-vnode
- *
-¡dš
-;
-
-69 
-vnode
- *
-¡dout
-;
-
-70 
-vnode
- *
-¡d”r
-;
-
-71 *
-cÚsŞeName
- = 
-	`k¡rdup
-("con:");
-
-72 *
-cÚsŞeNameI
- = 
-	`k¡rdup
-("con:");
-
-73 *
-cÚsŞeNameO
- = 
-	`k¡rdup
-("con:");
-
-74 *
-cÚsŞeNameE
- = 
-	`k¡rdup
-("con:");
-
-79 if(
-	`vfs_İ’
-(
-cÚsŞeNameI
-, 
-O_RDONLY
-, 0664, &
-¡dš
-)){
-
-80 
-	`kä“
-(
-cÚsŞeNameI
-);
-
-81 
-	`kä“
-(
-cÚsŞeNameO
-);
-
-82 
-	`kä“
-(
-cÚsŞeNameE
-);
-
-83 
-	`vfs_şo£
-(
-¡dš
-);
-
-84  
-EINVAL
-;
-
-91 
-cu½roc
-->
-f‘abË
-[0] = (
-f‘abË_’Œy
- *)
-
-92 
-	`km®loc
-((
-f‘abË_’Œy
-));
-
-93 
-cu½roc
-->
-f‘abË
-[0]->
-áe_vnode
- = 
-¡dš
-;
-
-94 
-cu½roc
-->
-f‘abË
-[0]->
-áe_f’ame
- = 
-cÚsŞeName
-;
-
-95 
-cu½roc
-->
-f‘abË
-[0]->
-áe_»fcouÁ
- = 1;
-
-96 
-cu½roc
-->
-f‘abË
-[0]->
-áe_off£t
- = 0;
-
-97 
-cu½roc
-->
-f‘abË
-[0]->
-áe_³rmissiÚs
- = 
-O_RDONLY
-;
-
-98 
-cu½roc
-->
-f‘abË
-[0]->
-áe_lock
- = 
-	`lock_ü—‹
-("stdin_lock");
-
-104 if(
-	`vfs_İ’
-(
-cÚsŞeNameO
-, 
-O_WRONLY
-, 0664, &
-¡dout
-)){
-
-105 
-	`kä“
-(
-cÚsŞeNameI
-);
-
-106 
-	`kä“
-(
-cÚsŞeNameO
-);
-
-107 
-	`kä“
-(
-cÚsŞeNameE
-);
-
-108 
-	`lock_de¡roy
-(
-cu½roc
-->
-f‘abË
-[0]->
-áe_lock
-);
-
-109 
-	`kä“
-(
-cu½roc
-->
-f‘abË
-[0]);
-
-110 
-	`vfs_şo£
-(
-¡dš
-);
-
-111 
-	`vfs_şo£
-(
-¡dout
-);
-
-119 
-cu½roc
-->
-f‘abË
-[1] = (
-f‘abË_’Œy
- *)
-
-120 
-	`km®loc
-((
-f‘abË_’Œy
-));
-
-121 
-cu½roc
-->
-f‘abË
-[1]->
-áe_vnode
- = 
-¡dout
-;
-
-122 
-cu½roc
-->
-f‘abË
-[1]->
-áe_f’ame
- = 
-cÚsŞeName
-;
-
-123 
-cu½roc
-->
-f‘abË
-[1]->
-áe_»fcouÁ
- = 1;
-
-124 
-cu½roc
-->
-f‘abË
-[1]->
-áe_off£t
- = 0;
-
-125 
-cu½roc
-->
-f‘abË
-[1]->
-áe_³rmissiÚs
- = 
-O_WRONLY
-;
-
-126 
-cu½roc
-->
-f‘abË
-[1]->
-áe_lock
- = 
-	`lock_ü—‹
-("stdout_lock");
-
-134 if(
-	`vfs_İ’
-(
-cÚsŞeNameE
-, 
-O_WRONLY
-, 0664, &
-¡d”r
-)){
-
-135 
-	`kä“
-(
-cÚsŞeNameI
-);
-
-136 
-	`kä“
-(
-cÚsŞeNameO
-);
-
-137 
-	`kä“
-(
-cÚsŞeNameE
-);
-
-138 
-	`lock_de¡roy
-(
-cu½roc
-->
-f‘abË
-[0]->
-áe_lock
-);
-
-139 
-	`kä“
-(
-cu½roc
-->
-f‘abË
-[0]);
-
-140 
-	`lock_de¡roy
-(
-cu½roc
-->
-f‘abË
-[1]->
-áe_lock
-);
-
-141 
-	`kä“
-(
-cu½roc
-->
-f‘abË
-[1]);
-
-142 
-	`vfs_şo£
-(
-¡dš
-);
-
-143 
-	`vfs_şo£
-(
-¡dout
-);
-
-144 
-	`vfs_şo£
-(
-¡d”r
-);
-
-152 
-cu½roc
-->
-f‘abË
-[2] = (
-f‘abË_’Œy
- *)
-
-153 
-	`km®loc
-((
-f‘abË_’Œy
-));
-
-154 
-cu½roc
-->
-f‘abË
-[2]->
-áe_vnode
- = 
-¡d”r
-;
-
-155 
-cu½roc
-->
-f‘abË
-[2]->
-áe_f’ame
- = 
-cÚsŞeName
-;
-
-156 
-cu½roc
-->
-f‘abË
-[2]->
-áe_»fcouÁ
- = 1;
-
-157 
-cu½roc
-->
-f‘abË
-[2]->
-áe_off£t
- = 0;
-
-158 
-cu½roc
-->
-f‘abË
-[2]->
-áe_³rmissiÚs
- = 
-O_WRONLY
-;
-
-159 
-cu½roc
-->
-f‘abË
-[2]->
-áe_lock
- = 
-	`lock_ü—‹
-("stderr_lock");
-
-162 
+63 
 »suÉ
  = 
 	`vfs_İ’
@@ -64487,15 +63535,15 @@ O_RDONLY
 v
 );
 
-163 ià(
+64 ià(
 »suÉ
 ) {
 
-164  
+65  
 »suÉ
 ;
 
-168 
+69 
 	`KASSERT
 (
 	`´oc_g‘as
@@ -64503,39 +63551,39 @@ v
 NULL
 );
 
-171 
+72 
 as
  = 
 	`as_ü—‹
 ();
 
-172 ià(
+73 ià(
 as
  =ğ
 NULL
 ) {
 
-173 
+74 
 	`vfs_şo£
 (
 v
 );
 
-174  
+75  
 ENOMEM
 ;
 
-178 
+79 
 	`´oc_£s
 (
 as
 );
 
-179 
+80 
 	`as_aùiv©e
 ();
 
-182 
+83 
 »suÉ
  = 
 	`lßd_–f
@@ -64545,27 +63593,27 @@ v
 ’Œypošt
 );
 
-183 ià(
+84 ià(
 »suÉ
 ) {
 
-185 
+86 
 	`vfs_şo£
 (
 v
 );
 
-186  
+87  
 »suÉ
 ;
 
-190 
+91 
 	`vfs_şo£
 (
 v
 );
 
-193 
+94 
 »suÉ
  = 
 	`as_defše_¡ack
@@ -64575,39 +63623,39 @@ as
 ¡ack±r
 );
 
-194 ià(
+95 ià(
 »suÉ
 ) {
 
-196  
+97  
 »suÉ
 ;
 
-200 
+101 
 	`’‹r_Ãw_´oûss
 (0 , 
 NULL
  ,
 
-201 
+102 
 NULL
  ,
 
-202 
+103 
 ¡ack±r
 , 
 ’Œypošt
 );
 
-205 
+106 
 	`·nic
 ("enter_new_process„eturned\n");
 
-206  
+107  
 EINVAL
 ;
 
-207 
+108 
 	}
 }
 
