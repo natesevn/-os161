@@ -7,6 +7,7 @@ runprogram.o: ../../syscall/runprogram.c ../../include/types.h \
  ../../include/array.h ../../include/threadlist.h \
  includelinks/machine/thread.h ../../include/setjmp.h \
  includelinks/kern/machine/setjmp.h ../../include/filetable.h \
+ ../../include/limits.h ../../include/kern/limits.h ../../include/synch.h \
  ../../include/current.h includelinks/machine/current.h \
  ../../include/addrspace.h ../../include/vm.h includelinks/machine/vm.h \
  opt-dumbvm.h ../../include/vfs.h ../../include/syscall.h \

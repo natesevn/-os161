@@ -69,6 +69,7 @@ sys_open(const userptr_t filename, int flags, int *retval)
 
     // Check if open was unsuccessful
     if(opensuccess != 0) {
+        lock_release(curproc->filetable_lock);
         return opensuccess;
     }
 
@@ -151,6 +152,7 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
     
     // Checking for errors in the read
     if(readsuccess != 0) {
+        lock_release(curproc->filetable[fd]->fte_lock);
         return readsuccess;
     }
 
@@ -173,7 +175,7 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
         return EBADF;
     }
     
-    // Check if the file is write only
+    // Check if the file is read only
     int permissions = curproc->filetable[fd]->fte_permissions & O_ACCMODE;
     if(permissions == O_RDONLY) { 
         return EBADF;
@@ -193,8 +195,17 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     newuio.uio_segflg = UIO_USERSPACE;
     newuio.uio_rw = UIO_WRITE;
     newuio.uio_space = curproc->p_addrspace;
+
+
+    // Test offset
+    off_t checkoffset = newuio.uio_offset + nbytes;
+    int32_t upperbits = (int32_t)((checkoffset >> 32) & 0x00000000FFFFFFFF);
+    
+    if(upperbits != 0x0) {
+        return EFBIG;
+    } 
  
-    // Call VOP_WRITE and update the filetable entry's offset
+     // Call VOP_WRITE and update the filetable entry's offset
     lock_acquire(curproc->filetable[fd]->fte_lock);
     int writesuccess = VOP_WRITE(curproc->filetable[fd]->fte_vnode, &newuio);
     
@@ -206,8 +217,8 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     int oldoffset = curproc->filetable[fd]->fte_offset;
     int newoffset = newuio.uio_offset;
 
-    off_t checkoffset = newuio.uio_offset;
-    int32_t upperbits = (int32_t)((checkoffset >> 32) & 0x00000000FFFFFFFF);
+    checkoffset = newuio.uio_offset;
+    upperbits = (int32_t)((checkoffset >> 32) & 0x00000000FFFFFFFF);
     
     if(upperbits != 0x0) {
         lock_release(curproc->filetable[fd]->fte_lock);
@@ -259,6 +270,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
     switch(whence) {
         case SEEK_SET:
             if(pos < 0) {
+                lock_release(curproc->filetable[fd]->fte_lock);
                 return EINVAL;
             }
             curproc->filetable[fd]->fte_offset = pos;
@@ -266,6 +278,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
 
         case SEEK_CUR:
             if(curproc->filetable[fd]->fte_offset + pos < 0) {
+                lock_release(curproc->filetable[fd]->fte_lock);
                 return EINVAL;
             }
             curproc->filetable[fd]->fte_offset += pos;
@@ -273,11 +286,10 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
 
         case SEEK_END:
             if(newstat.st_size + pos < 0) {
+                lock_release(curproc->filetable[fd]->fte_lock);
                 return EINVAL;
             }
-    
-            kprintf("newstat.st_size: %llx\n", newstat.st_size);
-            kprintf("pos: %llx\n", pos);
+            
             curproc->filetable[fd]->fte_offset = newstat.st_size + pos;
             break;
 
