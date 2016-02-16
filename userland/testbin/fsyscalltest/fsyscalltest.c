@@ -69,7 +69,6 @@ simple_test()
 		errx(1, "Buffer data mismatch!");
 	}
 }
-
 /*
  * This tests the very basic functionality of dup2.
  * We open/create a file, duplicate the file descriptor, 
@@ -348,7 +347,8 @@ dir_test()
 	{
 		err(1, "chdir into %s", chdir_name);
 	}
-}			
+}
+			
 
 /* This test takes no arguments, so we can run it before argument passing
  * is fully implemented. 

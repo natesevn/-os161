@@ -169,7 +169,7 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
 int 
 sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
 {
-	// Check if fd is invalid
+    // Check if fd is invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
         return EBADF;
     }
@@ -386,5 +386,3 @@ sys_getcwd(userptr_t buf, size_t buflen)
     
     return 0;  
 }
-
-
