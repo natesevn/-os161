@@ -18,22 +18,24 @@
 int
 sys_open(const userptr_t filename, int flags, int *retval)
 {
-    // Copy in the string from user level to kernel level.
-    // copyinstr handles EFAULT and ENAMETOOLONG errors 
+    /*
+     * Copy in the string from user level to kernel level. copyinstr handles 
+     * EFAULT and ENAMETOOLONG errors 
+     */
     char filenamebuffer[NAME_MAX];
     int copysuccess = copyinstr(filename, filenamebuffer, NAME_MAX, NULL);
 
-    // Check if filename is invalid
+    /* Check if filename is invalid. */
     if(copysuccess != 0) {
         return copysuccess;
     }
 
-    // Check if flags are invalid
+    /* Check if flags are invalid. */
     if(flags < 0 || flags > 255) {
         return EINVAL;
     }
 
-    // Create new filetable_entry
+    /* Create new filetable_entry. */
     struct filetable_entry *fte = (struct filetable_entry *) 
                                     kmalloc(sizeof(struct filetable_entry));
     struct vnode *newvnode = NULL; 
@@ -44,10 +46,10 @@ sys_open(const userptr_t filename, int flags, int *retval)
     fte->fte_permissions = flags;
     fte->fte_lock = lock_create("fte_lock");
 
-    // Acquire the filetable lock
+    /* Acquire the filetable lock. */
     lock_acquire(curproc->filetable_lock);
 
-    // Iterate through filetable to find a free slot
+    /* Iterate through filetable to find a free slot. */
     int i;
     int fd; 
     for(i = 0; i < OPEN_MAX; i++) {
@@ -57,29 +59,30 @@ sys_open(const userptr_t filename, int flags, int *retval)
         }
     }
 
-    // Check if we actually found an empty slot
+    /* Check if we actually found an empty slot. */
     if(i == OPEN_MAX) {
         return EMFILE;
     }
     
-    // Call vfs_open after securing the lock for the filetable entry
+    /* Call vfs_open after securing the lock for the filetable entry. */
     lock_acquire(fte->fte_lock);
     int opensuccess = vfs_open(filenamebuffer, flags, 0, &fte->fte_vnode);
     lock_release(fte->fte_lock);
 
-    // Check if open was unsuccessful
+    /* Check if open was unsuccessful. */
     if(opensuccess != 0) {
         return opensuccess;
     }
 
-    // Place the new entry in the filetable
+    /* Place the new entry in the filetable. */
     curproc->filetable[fd] = fte;
 
-    // Release the filetable lock
+    /* Release the filetable lock. */
     lock_release(curproc->filetable_lock);
 
-    // Pass the file descriptor in the return variable by reference, and 
-    // return 0 in the function itself.
+    /* Pass the file descriptor in the return variable by reference, and 
+     * return 0 in the function itself.
+     */
     *retval = fd;
     return 0;
 }
@@ -87,29 +90,30 @@ sys_open(const userptr_t filename, int flags, int *retval)
 int 
 sys_close(int fd)
 {
-    // Check if fd is invalid
+    /* Check if fd is invalid. */
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
         return EBADF;
     }
     
-    // Decrement our reference counter and call vfs_close if it is 0.
+    /* Decrement our reference counter and call vfs_close if it is 0. */
     lock_acquire(curproc->filetable[fd]->fte_lock);
     curproc->filetable[fd]->fte_refcount--;
     if(curproc->filetable[fd]->fte_refcount == 0) {
         vfs_close(curproc->filetable[fd]->fte_vnode);
 
-        // We have to release the lock before freeing the entry
+        /* We have to release the lock before freeing the entry. */
         lock_release(curproc->filetable[fd]->fte_lock);
         kfree(curproc->filetable[fd]);
 
-        // Set the entry to NULL to be explicit
+        /* Set the entry to NULL to be explicit. */
         lock_acquire(curproc->filetable_lock);
         curproc->filetable[fd] = NULL;
         lock_release(curproc->filetable_lock);
     }
     else {
-        // If the refcount is still > 0, then we have not released the
-        // filetable entry's lock yet, so do it here.
+        /* If the refcount is still > 0, then we have not released the
+         * filetable entry's lock yet, so do it here.
+         */
         lock_release(curproc->filetable[fd]->fte_lock);
     }
 
@@ -120,23 +124,23 @@ int
 sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
 {
     kprintf("im suck at the beginning\n");
-    // Check if fd is invalid
+    /* Check if fd is invalid. */
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
         return EBADF;
     }
     
-    // Check if the file is write only
+    /* Check if the file is write only. */
     int permissions = curproc->filetable[fd]->fte_permissions & O_ACCMODE;
     if(permissions == O_WRONLY) { 
         return EBADF;
     }
     
-    // Create a new iovec struct
+    /* Create a new iovec struct. */
     struct iovec newiov;
     newiov.iov_len = buflen;
     newiov.iov_ubase = readbuf;
     
-    // Create a new uio struct
+    /* Create a new uio struct. */
     struct uio newuio;
     newuio.uio_iov = &newiov;
     newuio.uio_iovcnt = 1;
@@ -145,12 +149,12 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
     newuio.uio_segflg = UIO_USERSPACE;
     newuio.uio_rw = UIO_READ;
     newuio.uio_space = curproc->p_addrspace;
-    kprintf("im stuck before vop read\n");
-    // Call VOP_READ and update the filetable entry's offset
+    
+    /* Call VOP_READ and update the filetable entry's offset. */
     lock_acquire(curproc->filetable[fd]->fte_lock);  
     int readsuccess = VOP_READ(curproc->filetable[fd]->fte_vnode, &newuio);
-    kprintf("im stuck after VOP_READ\n");
-    // Checking for errors in the read
+    
+    /* Checking for errors in the read. */
     if(readsuccess != 0) {
         return readsuccess;
     }
@@ -160,8 +164,9 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
     curproc->filetable[fd]->fte_offset = newoffset;
     lock_release(curproc->filetable[fd]->fte_lock);
 
-    // Return the amount of bytes read in the retval variable by reference,
-    // and return 0 in the function itself.
+    /* Return the amount of bytes read in the retval variable by reference,
+     * and return 0 in the function itself.
+     */
     *retval = newoffset - oldoffset;
     return 0;
 }
@@ -169,28 +174,23 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
 int 
 sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
 {
-    // Check if fd is invalid
+    /* Check if fd is invalid. */
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
         return EBADF;
     }
     
-    // Check if the file is write only
+    /* Check if the file is write only. */
     int permissions = curproc->filetable[fd]->fte_permissions & O_ACCMODE;
     if(permissions == O_RDONLY) { 
         return EBADF;
     }
- 
-    // Check if file is too large    
-//    if(nbytes > ARG_MAX)  {
-  //      return EFBIG;
-    //}
 
-    // Create a new iovec struct
+    /* Create a new iovec struct. */
     struct iovec newiov;
     newiov.iov_len = nbytes;
     newiov.iov_ubase = writebuf;
     
-    // Create a new uio struct
+    /* Create a new uio struct. */
     struct uio newuio;
     newuio.uio_iov = &newiov;
     newuio.uio_iovcnt = 1;
@@ -201,7 +201,7 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
     newuio.uio_space = curproc->p_addrspace;
    
 
-    // Test offset
+    /* Test offset. */
     off_t checkoffset = newuio.uio_offset + nbytes;
     int32_t upperbits = (int32_t)((checkoffset >> 32) & 0x00000000FFFFFFFF);
     
@@ -209,11 +209,11 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
         return EFBIG;
     } 
  
-     // Call VOP_WRITE and update the filetable entry's offset
+    /* Call VOP_WRITE and update the filetable entry's offset. */
     lock_acquire(curproc->filetable[fd]->fte_lock);
     int writesuccess = VOP_WRITE(curproc->filetable[fd]->fte_vnode, &newuio);
     
-    // Checking for errors in the write
+    /* Checking for errors in the write. */
     if(writesuccess != 0) {
         return writesuccess;
     }
@@ -231,8 +231,9 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
         return EFBIG;
     }
 
-    // Return the amount of bytes written in the retval variable by reference,
-    // and return 0 in the function itself.
+    /* Return the amount of bytes written in the retval variable by reference,
+     * and return 0 in the function itself.
+     */
     *retval = newoffset - oldoffset;
     return 0;
 }
@@ -240,7 +241,7 @@ sys_write(int fd, const userptr_t writebuf, size_t nbytes, int *retval)
 off_t
 sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
 {
-    // Check if fd and whence are invalid
+    /* Check if fd and whence are invalid. */
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
         return EBADF;
     }
@@ -248,7 +249,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
         return EINVAL;
     }
     
-    // Check if the file is seekable
+    /* Check if the file is seekable. */
     lock_acquire(curproc->filetable[fd]->fte_lock);
     bool seekable = VOP_ISSEEKABLE(curproc->filetable[fd]->fte_vnode);
     lock_release(curproc->filetable[fd]->fte_lock);
@@ -257,18 +258,18 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
         return ESPIPE;
     }
 
-    // Get the position of the end of file
+    /* Get the position of the end of file. */
     lock_acquire(curproc->filetable[fd]->fte_lock);
     struct stat newstat;
     int statsuccess = VOP_STAT(curproc->filetable[fd]->fte_vnode, &newstat);
     lock_release(curproc->filetable[fd]->fte_lock);
 
-    // Check if the stat failed
+    /* Check if the stat failed. */
     if(statsuccess != 0) {
         return statsuccess;
     }
     
-    // Change the offset, depending on what the value of whence is
+    /* Change the offset, depending on what the value of whence is. */
     lock_acquire(curproc->filetable[fd]->fte_lock);
     switch(whence) {
         case SEEK_SET:
@@ -297,8 +298,9 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
     }
     lock_release(curproc->filetable[fd]->fte_lock);
    
-    // Return the amount of bytes read in the retval variable by reference,
-    // and return 0 in the function itself.
+    /* Return the amount of bytes read in the retval variable by reference,
+     * and return 0 in the function itself.
+     */
     off_t newoffset = curproc->filetable[fd]->fte_offset; 
     *retval64 = newoffset;
 
@@ -308,7 +310,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval64)
 int 
 sys_dup2(int oldfd, int newfd, int *retval)
 {
-    // Check if oldfd and newfd are invalid
+    /* Check if oldfd and newfd are invalid. */
     if(oldfd >= OPEN_MAX || oldfd < 0 || curproc->filetable[oldfd] == NULL) {
         return EBADF;
     }
@@ -316,13 +318,14 @@ sys_dup2(int oldfd, int newfd, int *retval)
         return EBADF;
     }
 
-    // Close the file to free up the slot in newfd
+    /* Close the file to free up the slot in newfd. */
     if(curproc->filetable[newfd] != NULL) {
         sys_close(newfd);
     }
 
-    // Increase the reference count and 
-    // duplicate the file into filetable[newfd]
+    /* Increase the reference count and duplicate the file into 
+     * filetable[newfd].
+     */
     lock_acquire(curproc->filetable[oldfd]->fte_lock);
     curproc->filetable[oldfd]->fte_refcount++;
     lock_acquire(curproc->filetable_lock);
@@ -330,8 +333,9 @@ sys_dup2(int oldfd, int newfd, int *retval)
     lock_release(curproc->filetable_lock);
     lock_release(curproc->filetable[oldfd]->fte_lock);
 
-    // Return the newfd in the retval variable by reference,
-    // and return 0 in the function itself.
+    /* Return the newfd in the retval variable by reference, and return 0 in 
+     * the function itself.
+     */
     *retval = newfd;
     return 0;
 }
@@ -339,20 +343,21 @@ sys_dup2(int oldfd, int newfd, int *retval)
 int 
 sys_chdir(const userptr_t pathname)
 {
-    // Copy in the string from user level to kernel level.
-    // copyinstr handles EFAULT and ENAMETOOLONG errors 
+    /* Copy in the string from user level to kernel level. copyinstr handles 
+     * EFAULT and ENAMETOOLONG errors 
+     */
     char pathnamebuffer[PATH_MAX];
     int copysuccess = copyinstr(pathname, pathnamebuffer, PATH_MAX, NULL);
 
-    // Check if filename is invalid
+    /* Check if filename is invalid. */
     if(copysuccess != 0) {
         return copysuccess;
     }
 
-    // Call vfs_chdir
+    /* Call vfs_chdir. */
     int chdirsuccess = vfs_chdir(pathnamebuffer);
     
-    // Check if vfs_chdir was unsuccessful    
+    /* Check if vfs_chdir was unsuccessful. */    
     if(chdirsuccess != 0) {
         return chdirsuccess;
     }
@@ -363,12 +368,12 @@ sys_chdir(const userptr_t pathname)
 int 
 sys_getcwd(userptr_t buf, size_t buflen)
 {
-    // Create a new iovec struct
+    /* Create a new iovec struct. */
     struct iovec newiov;
     newiov.iov_len = buflen;
     newiov.iov_ubase = buf;
     
-    // Create a new uio struct
+    /* Create a new uio struct. */
     struct uio newuio;
     newuio.uio_iov = &newiov;
     newuio.uio_iovcnt = 1;
@@ -378,7 +383,7 @@ sys_getcwd(userptr_t buf, size_t buflen)
     newuio.uio_rw = UIO_READ;
     newuio.uio_space = curproc->p_addrspace;
     
-    // Call vfs_getcwd and check for errors
+    /* Call vfs_getcwd and check for errors. */
     int getcwdsuccess = vfs_getcwd(&newuio);
     if(getcwdsuccess != 0) {
         return getcwdsuccess;
