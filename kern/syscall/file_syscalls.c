@@ -119,6 +119,7 @@ sys_close(int fd)
 int
 sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
 {
+    kprintf("im suck at the beginning\n");
     // Check if fd is invalid
     if(fd >= OPEN_MAX || fd < 0 || curproc->filetable[fd] == NULL) {
         return EBADF;
@@ -144,11 +145,11 @@ sys_read(int fd, userptr_t readbuf, size_t buflen, int *retval)
     newuio.uio_segflg = UIO_USERSPACE;
     newuio.uio_rw = UIO_READ;
     newuio.uio_space = curproc->p_addrspace;
-   
+    kprintf("im stuck before vop read\n");
     // Call VOP_READ and update the filetable entry's offset
     lock_acquire(curproc->filetable[fd]->fte_lock);  
     int readsuccess = VOP_READ(curproc->filetable[fd]->fte_vnode, &newuio);
-    
+    kprintf("im stuck after VOP_READ\n");
     // Checking for errors in the read
     if(readsuccess != 0) {
         return readsuccess;
