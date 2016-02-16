@@ -150,7 +150,6 @@ syscall(struct trapframe *tf)
 		}
 
 		retval = (int32_t)((retval64 >> 32) & 0x00000000FFFFFFFF);
-
 		break;
 
 		case SYS_dup2:
