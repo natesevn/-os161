@@ -4,7 +4,7 @@
 #include <array.h>
 
 /* The struct representing a file in userspace. Each entry in our filetable 
- * will be one of these structs. 
+ * will be represented by one of these structs. 
  * fte_vnode: representation of a file in kernelspace
  * fte_filename: path/name of the file 
  * fte_refcount: number of threads working on the file
