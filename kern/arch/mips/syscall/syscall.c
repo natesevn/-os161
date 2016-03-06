@@ -37,7 +37,7 @@
 #include <syscall.h>
 #include <file_syscalls.h>
 #include <copyinout.h>
-
+#include <proc_syscalls.h>
 
 /*
  * System call dispatcher.
@@ -163,8 +163,30 @@ syscall(struct trapframe *tf)
 		case SYS___getcwd:
 		err = sys_getcwd((userptr_t)tf->tf_a0, tf->tf_a1);
 		break;
+        
+        case SYS_fork:
+        err = sys_fork(tf, &retval);
+        break;
 
-	    default:
+        case SYS_execv:
+        err = sys_execv((const userptr_t)tf->tf_a0, (userptr_t *)tf->tf_a1);
+        break;
+
+        case SYS_getpid:
+        err = 0;
+        retval = sys_getpid();
+        break;
+
+        case SYS_waitpid:
+        err = sys_waitpid(tf->tf_a0, (userptr_t)tf->tf_a1, tf->tf_a2, &retval);
+        break;
+
+        case SYS__exit:
+        err = 0;
+        sys__exit(tf->tf_a0);
+        break;
+
+        default:
 		kprintf("Unknown syscall %d\n", callno);
 		err = ENOSYS;
 		break;
