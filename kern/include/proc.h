@@ -67,13 +67,7 @@ struct proc {
 
     pid_t p_pid;    /* process id */
     pid_t p_ppid;   /* parent process id */    
-    int p_exited;   /* exited or not */
-    int p_exitcode; /* exit code */
-    struct semaphore *p_sem;    /* to synchronize waitpid and exit syscalls */ 
 };
-
-/* A global process table that all processes have access to */
-struct proc *proctable[PID_MAX];
 
 /* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;

@@ -12,11 +12,12 @@
 #include <stat.h>
 #include <current.h>
 #include <proc.h>
+#include <proctable.h>
 #include <proc_syscalls.h>
 #include <file_syscalls.h>
 #include <filetable.h>
 #include <thread.h>
-
+#include <kern/wait.h>
 /*
  * SYSTEM CALL: FORK
  *
@@ -146,15 +147,14 @@ int sys_execv(const char *program, char **args) {
     
     while(args[index] != NULL) {
         
-    }
-         
+    }    
 
     /* Open the exec, create new addrspace and load elf. */
 
     /* Copy the args from kernel to user stack. */
 
     /* Return to user mode. */
-    
+} 
 
 /*
  * SYSTEM CALL: GETPID
@@ -186,13 +186,15 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
         return ESRCH;
     }
     
-    /* Iterate through list of children. If none of children is labelled by
-     * pid, give an error.
-     */
+    if(proctable[pid]->pte_proc.p_ppid != curproc->p_pid) {
+        return ECHILD;
+    }
 
     /* Use P on semaphore. */
+    P(proctable[pid]->pte_sem);
 
     /* Copy exit status to status pointer. */
+    
     /* Check for status copy errors. */
 
     /* Destroy the process. */
@@ -209,17 +211,29 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
  * Does not return.
  */
 void sys__exit(int exitcode) {
+    
+    /* Find the current process' parent. */
+    int parent_index;
+    int i;
+    for(i = 0; i < PID_MAX; i++) {
+        if(proctable[i]->pte_proc.p_pid == curproc->p_ppid) {
+            parent_index = i;
+            break;
+        }
+    }
 
-    /* Iterate through process' filetable and close its files. */
-
-    /* If process has not exited yet, Use _MKWAIT_EXIT() macro, and set
-     * p_exited to true. Otherwise, it has already exited, so destroy
-     * the process.
+    /* Only bother to fill the exitcode if the parent has
+     * not exited yet. If the parent has already exited, destroy
+     * the process, as we can be sure waitpid won't be called 
+     * on it anymore.
      */
+    if(proctable[parent_index]->pte_exited == 0) {
+        proctable[curproc->p_pid]->pte_exitcode  = _MKWAIT_EXIT(exitcode);
+        proctable[curproc->p_pid]->pte_exited = 1;
+        V(proctable[curproc->p_pid]->pte_sem);
+    } else {
+        proc_destroy(curproc);
+    }
 
-    /* Call thread exit */ 
+    thread_exit();
 }
-
-
-
-
