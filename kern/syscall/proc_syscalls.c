@@ -154,6 +154,8 @@ int sys_execv(const char *program, char **args) {
     /* Copy the args from kernel to user stack. */
 
     /* Return to user mode. */
+    
+    return 0;
 } 
 
 /*
@@ -173,7 +175,7 @@ pid_t sys_getpid(void) {
  */
 pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
     
-    /* Do error checking on the arguments */
+    /* Do error checking on the arguments. */
     if(options != 0) {
         return EINVAL;
     }
@@ -190,16 +192,19 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
         return ECHILD;
     }
 
-    /* Use P on semaphore. */
-    P(proctable[pid]->pte_sem);
+    /* Wait for the child to exit. */
+    if(proctable[pid]->exited == 0) {
+        P(proctable[pid]->pte_sem);
+    }
 
-    /* Copy exit status to status pointer. */
-    
-    /* Check for status copy errors. */
+    /* Copy exit status to status pointer and check for errors */
+    int copy_result = copyout((const void *)&proctable[pid]->pte_exitcode, 
+                        (userptr_t)status, sizeof(int));
+    if(copy_result) {
+        return copy_result;
+    }
 
-    /* Destroy the process. */
-
-    /* Return the pid inside retval, and return 0 in the function*/
+    /* Return the pid inside retval, and return 0 in the function. */
     *retval = pid;
     return 0;
 }
