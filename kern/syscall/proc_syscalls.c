@@ -127,7 +127,7 @@ int sys_execv(const char *program, char **args) {
     struct vnode *v;
     struct addrspace *new_as, *old_as;
     vaddr_t entrypoint, stackptr;
-    char **karg, **tempStrPtr, **tempArray;
+    char **karg, **tempStrPtr;
     char *progname, *tempArg; 
     int copysuccess = 0;
     int i, j, numArgs, result; 
@@ -144,7 +144,7 @@ int sys_execv(const char *program, char **args) {
         kfree(progname);
         return ENOMEM;
     }
-    copysuccess = copyinstr(program, progname, PATH_MAX, NULL);
+    copysuccess = copyinstr((const_userptr_t)program, progname, PATH_MAX, NULL);
     if(copysuccess) {
         kfree(progname);
         return copysuccess;
@@ -182,7 +182,7 @@ int sys_execv(const char *program, char **args) {
         }
 
         /* Copy in pointer pointing to a string pointer. */
-        copysuccess = copyin(args, tempStrPtr, sizeof(char *));
+        copysuccess = copyin((const_userptr_t)args, tempStrPtr, sizeof(char *));
         if(copysuccess) {
             kfree(progname);
             kfree(karg);
@@ -193,7 +193,7 @@ int sys_execv(const char *program, char **args) {
         args += sizeof(char *);
 
         /* Copy in string pointed to by copied pointer. */
-        copysuccess = copyinstr(*tempStrPtr, tempArg, PATH_MAX, &originalLen);
+        copysuccess = copyinstr((const_userptr_t)*tempStrPtr, tempArg, PATH_MAX, &originalLen);
         if(copysuccess) {
             kfree(progname);
             kfree(karg);
@@ -210,12 +210,12 @@ int sys_execv(const char *program, char **args) {
 
         /* Pad user argument with '\0' to align them. */
         karg[i] = (char *)kmalloc(len*sizeof(char));
-        for(j=0; j<len; j++) {
-             if(j >= originalLen) {
-                karg[index][j] = '\0';
+        for(j=0; (size_t)j<len; j++) {
+             if((size_t)j >= originalLen) {
+                karg[i][j] = '\0';
             }
             else {
-                karg[index][j] = tempArg[j];
+                karg[i][j] = tempArg[j];
             }
         }
 
@@ -225,15 +225,15 @@ int sys_execv(const char *program, char **args) {
     karg[i] = NULL;
 
     /* Open the exec, create new addrspace and load elf. */
-    result = vfs_open(progname, 0_RDONLY, 0, &v);
+    result = vfs_open(progname, O_RDONLY, 0, &v);
     if(result) {
         kfree(progname);
         kfree(karg);
         return result;
     }
     
-    as = as_create();
-    if(as == NULL) {
+    new_as = as_create();
+    if(new_as == NULL) {
         kfree(progname);
         kfree(karg);
         vfs_close(v);
@@ -266,8 +266,8 @@ int sys_execv(const char *program, char **args) {
     for(i=numArgs-1; i>=0; i--) {
         len = strlen(karg[i]);
 
-        stackptr = stackptr - length;
-        copysuccess = copyoutstr(karg[i], stackptr, len, NULL);
+        stackptr = stackptr - len;
+        copysuccess = copyoutstr(karg[i], (userptr_t)stackptr, len, NULL);
         if(copysuccess) {
             kfree(progname);
             kfree(karg);
@@ -279,7 +279,7 @@ int sys_execv(const char *program, char **args) {
     /* Copy each string pointer address from kernel to user stack. */
     for(i=numArgs; i>=0; i--) {
         stackptr = stackptr - sizeof(char *);
-        copysuccess = copyout(karg[i], stackptr, sizeof(char *));
+        copysuccess = copyout(karg[i], (userptr_t)stackptr, sizeof(char *));
         if(copysuccess) {
             kfree(progname);
             kfree(karg);
