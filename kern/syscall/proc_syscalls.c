@@ -327,7 +327,7 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
         return ESRCH;
     }
     
-    if(proctable[pid]->pte_proc.p_ppid != curproc->p_pid) {
+    if(proctable[pid]->pte_proc->p_ppid != curproc->p_pid) {
         return ECHILD;
     }
 
@@ -355,29 +355,9 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
  * Does not return.
  */
 void sys__exit(int exitcode) {
-    
-    /* Find the current process' parent. */
-    int parent_index;
-    int i;
-    for(i = 0; i < PID_MAX; i++) {
-        if(proctable[i]->pte_proc.p_pid == curproc->p_ppid) {
-            parent_index = i;
-            break;
-        }
-    }
-
-    /* Only bother to fill the exitcode if the parent has
-     * not exited yet. If the parent has already exited, destroy
-     * the process, as we can be sure waitpid won't be called 
-     * on it anymore.
-     */
-    if(proctable[parent_index]->pte_exited == 0) {
-        proctable[curproc->p_pid]->pte_exitcode  = _MKWAIT_EXIT(exitcode);
-        proctable[curproc->p_pid]->pte_exited = 1;
-        V(proctable[curproc->p_pid]->pte_sem);
-    } else {
-        proc_destroy(curproc);
-    }
-
+    proctable[curproc->p_pid]->pte_exited = 1; 
+    proctable[curproc->p_pid]->pte_exitcode = exitcode;
+    V(proctable[curproc->p_pid]->pte_sem);
+    proc_destroy(curproc);
     thread_exit();
 }

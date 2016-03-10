@@ -41,6 +41,7 @@
 #include <filetable.h>
 #include <limits.h>
 #include <synch.h>
+#include <types.h>
 
 struct addrspace;
 struct vnode;
