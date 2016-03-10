@@ -18,6 +18,38 @@
 #include <filetable.h>
 #include <thread.h>
 #include <kern/wait.h>
+#include <addrspace.h>
+#include <mips/trapframe.h>
+
+/*
+ * Entry point for child process.
+ * Modifies child's trapframe to make it return 0, and to indicate success.
+ * Then loads addrspace before going into usermode.
+ */
+void child_entry(void *data1, unsigned long data2) {
+    struct trapframe *child_tf, child_user_tf;
+    struct addrspace *child_as;
+
+    child_tf = (struct trapframe *)data1;
+    child_as = (struct addrspace *)data2;
+
+    /* Store child's return value in v0. */
+    child_tf->tf_v0 = 0;
+    /* Set register a3 to 0 to indicate success. */
+    child_tf->tf_a3 = 0;
+    /* Advance program counter to prevent the recalling syscall. */
+    child_tf->tf_epc += 4;
+
+    /* Load addrspace into child process */
+    curproc->p_addrspace = child_as;
+    as_activate();
+
+    /* Copy trapframe onto current thread's stack, then go to usermode. */
+    child_user_tf = *child_tf;
+    mips_usermode(&child_user_tf);
+    
+}
+
 /*
  * SYSTEM CALL: FORK
  *
@@ -25,10 +57,10 @@
  * Returns twice: once for the parent, once for the child. 
  */
 pid_t sys_fork(struct trapframe *tf, int *retval) {
-    struct thread *child_thread;
     struct proc *child_proc;
     int index, success;
-    char *proc_name, *thread_name;
+    char *proc_name = NULL;
+    char  *thread_name = NULL;
 
     /* Create child process. */
     proc_name = strcat(proc_name, curproc->p_name);
@@ -85,80 +117,6 @@ pid_t sys_fork(struct trapframe *tf, int *retval) {
 }
 
 /*
- * Entry point for child process.
- * Modifies child's trapframe to make it return 0, and to indicate success.
- * Then loads addrspace before going into usermode.
- */
-void child_entry(void *data1, unsigned long data2) {
-    struct trapframe *child_tf, child_user_tf;
-    struct addrspace *child_as;
-
-    child_tf = (struct trapframe *)data1;
-    child_as = (struct addrspace *)data2;
-
-    /* Store child's return value in v0. */
-    child_tf->v0 = 0;
-    /* Set register a3 to 0 to indicate success. */
-    child_tf->a3 = 0;
-    /* Advance program counter to prevent the recalling syscall. */
-    child_tf->epc += 4;
-
-    /* Load addrspace into child process */
-    curproc->p_addrspace = child_as;
-    as_activate(child_as);
-
-    /* Copy trapframe onto current thread's stack, then go to usermode. */
-    child_user_tf = &child_tf;
-    mips_usermode(&child_user_tf);
-    
-}
-
-/*
- * SYSTEM CALL: EXECV
- *
- * Replaces the currently executing program with a newly loaded program image.
- * Does not return upon success. Instead,  the new program begins executing.
- * Returns an error upon failure.
- */
-int sys_execv(const char *program, char **args) {
-    char **karg;
-    char *progname; 
-    int copysuccess, index;
- 
-    /* Check for invalid pointer args. */
-    if(program == NULL || args == NULL) {
-        return EFAULT;
-    }
-    
-    /* Copy in program name from user mode to kernel. */
-    copysuccess = copyinstr(program, progname, PATH_MAX, NULL);
-    if(copysuccess != 0) {
-        return copysuccess;
-    }
-    
-    /* Copy args from user space to kernel. 
-     * Copy array in first, then copy each string in.
-     */
-    karg = (char **)kmalloc(sizeof(char **));
-    copysuccess = copyin(args, karg, sizeof(char **));
-    if(copysuccess != 0) {
-        return copysuccess;
-    }
-    
-    while(args[index] != NULL) {
-        
-    }    
-
-    /* Open the exec, create new addrspace and load elf. */
-
-    /* Copy the args from kernel to user stack. */
-
-    /* Return to user mode. */
-    
-    return 0;
-} 
-
-/*
  * SYSTEM CALL: GETPID
  *
  * Returns the current process' id
@@ -193,7 +151,7 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
     }
 
     /* Wait for the child to exit. */
-    if(proctable[pid]->exited == 0) {
+    if(proctable[pid]->pte_exited == 0) {
         P(proctable[pid]->pte_sem);
     }
 

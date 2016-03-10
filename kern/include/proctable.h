@@ -6,7 +6,7 @@ struct proctable_entry {
     int pte_exited;
     int pte_exitcode;
     struct semaphore *pte_sem;
-}
+};
 
 /* Global process table */
 struct proctable_entry *proctable[PID_MAX];

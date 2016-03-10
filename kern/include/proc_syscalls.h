@@ -1,6 +1,7 @@
 #ifndef _PROC_SYSCALLS_H_
 #define _PROC_SYSCALLS_H_
 
+void child_entry(void *data1, unsigned long data2);
 pid_t sys_fork(struct trapframe *tf, int *retval);
 int sys_execv(const char *program, char **args);
 pid_t sys_getpid(void);
