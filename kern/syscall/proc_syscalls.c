@@ -117,6 +117,187 @@ pid_t sys_fork(struct trapframe *tf, int *retval) {
 }
 
 /*
+ * SYSTEM CALL: EXECV
+ *
+ * Replaces the currently executing program with a newly loaded program image.
+ * Does not return upon success. Instead,  the new program begins executing.
+ * Returns an error upon failure.
+ */
+int sys_execv(const char *program, char **args) {
+    struct vnode *v;
+    struct addrspace *new_as, *old_as;
+    vaddr_t entrypoint, stackptr;
+    char **karg, **tempStrPtr, **tempArray;
+    char *progname, *tempArg; 
+    int copysuccess = 0;
+    int i, j, numArgs, result; 
+    size_t originalLen, len;
+ 
+    /* Check for invalid pointer args. */
+    if(program == NULL || args == NULL) {
+        return EFAULT;
+    }
+    
+    /* Copy in program name from user mode to kernel. */
+    progname = (char *)kmalloc(sizeof(char) * PATH_MAX);
+    if(progname == NULL) {
+        kfree(progname);
+        return ENOMEM;
+    }
+    copysuccess = copyinstr(program, progname, PATH_MAX, NULL);
+    if(copysuccess) {
+        kfree(progname);
+        return copysuccess;
+    }
+    
+    
+    /* Loop to find number of arguments. */
+    numArgs = 0; 
+    while(args[numArgs] != NULL) { 
+        numArgs++;
+    }
+    numArgs++;     
+    
+    /* Copy in user arguments to kernel buffer. */
+    karg = (char **)kmalloc(numArgs*sizeof(char *));
+    if(karg == NULL) {
+        kfree(progname);
+        return ENOMEM;
+    }
+
+    for(i=0; i<numArgs-1; i++) {
+        tempStrPtr = (char **)kmalloc(sizeof(char *));
+        if(tempStrPtr == NULL) {
+            kfree(progname);
+            kfree(karg);
+            return ENOMEM;
+        }
+
+        tempArg = (char *)kmalloc(sizeof(char)*ARG_MAX);
+        if(tempStrPtr == NULL) {
+            kfree(progname);
+            kfree(karg);
+            kfree(tempStrPtr);
+            return ENOMEM;
+        }
+
+        /* Copy in pointer pointing to a string pointer. */
+        copysuccess = copyin(args, tempStrPtr, sizeof(char *));
+        if(copysuccess) {
+            kfree(progname);
+            kfree(karg);
+            kfree(tempStrPtr);
+            kfree(tempArg);
+            return copysuccess;
+        }
+        args += sizeof(char *);
+
+        /* Copy in string pointed to by copied pointer. */
+        copysuccess = copyinstr(*tempStrPtr, tempArg, PATH_MAX, &originalLen);
+        if(copysuccess) {
+            kfree(progname);
+            kfree(karg);
+            kfree(tempStrPtr);
+            kfree(tempArg);
+            return copysuccess;
+        }
+
+        /* Make provisions for aligning user arguments in kernel buffer. */
+        len = originalLen;
+        if(len%4 != 0) {
+            len = len + (4 - len%4);
+        }
+
+        /* Pad user argument with '\0' to align them. */
+        karg[i] = (char *)kmalloc(len*sizeof(char));
+        for(j=0; j<len; j++) {
+             if(j >= originalLen) {
+                karg[index][j] = '\0';
+            }
+            else {
+                karg[index][j] = tempArg[j];
+            }
+        }
+
+        kfree(tempArg);
+        kfree(tempStrPtr); 
+    }
+    karg[i] = NULL;
+
+    /* Open the exec, create new addrspace and load elf. */
+    result = vfs_open(progname, 0_RDONLY, 0, &v);
+    if(result) {
+        kfree(progname);
+        kfree(karg);
+        return result;
+    }
+    
+    as = as_create();
+    if(as == NULL) {
+        kfree(progname);
+        kfree(karg);
+        vfs_close(v);
+        return ENOMEM;
+    }
+
+    old_as = proc_setas(new_as);
+    as_activate();
+    as_destroy(old_as);
+
+    result = load_elf(v, &entrypoint);
+    if(result) {
+        kfree(progname);
+        kfree(karg);
+        vfs_close(v);
+        return result; 
+    }
+
+    vfs_close(v);
+
+    /* Define user stack. */
+    result = as_define_stack(new_as, &stackptr);
+    if(result) {
+        kfree(progname);
+        kfree(karg);
+        return result;
+    }
+
+    /* Copy each string from kernel to user stack. */
+    for(i=numArgs-1; i>=0; i--) {
+        len = strlen(karg[i]);
+
+        stackptr = stackptr - length;
+        copysuccess = copyoutstr(karg[i], stackptr, len, NULL);
+        if(copysuccess) {
+            kfree(progname);
+            kfree(karg);
+            return copysuccess;
+        }
+        karg[i] = (char *)stackptr;
+    }   
+
+    /* Copy each string pointer address from kernel to user stack. */
+    for(i=numArgs; i>=0; i--) {
+        stackptr = stackptr - sizeof(char *);
+        copysuccess = copyout(karg[i], stackptr, sizeof(char *));
+        if(copysuccess) {
+            kfree(progname);
+            kfree(karg);
+            return copysuccess;
+        }
+    }
+
+    kfree(progname);
+    kfree(karg);
+    
+    /* Return to user mode. */
+    enter_new_process(0, NULL, NULL, stackptr, entrypoint);
+    
+    panic("enter_new_process returned\n");
+    return EINVAL;
+}    
+
+/*
  * SYSTEM CALL: GETPID
  *
  * Returns the current process' id
