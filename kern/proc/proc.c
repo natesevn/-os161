@@ -54,6 +54,7 @@
 #include <kern/fcntl.h>
 #include <synch.h>
 #include <vfs.h>
+#include <proctable.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -96,6 +97,9 @@ proc_create(const char *name)
     
     /* Create the lock to control access to this process' filetable */
     proc->filetable_lock = lock_create("filetable_lock");
+
+    /* Add the process to the proctable */
+    proctable_add(proc);
 
     return proc;
 }
