@@ -99,6 +99,8 @@ proc_create(const char *name)
     proc->filetable_lock = lock_create("filetable_lock");
 
     /* Add the process to the proctable */
+    proc->p_pid = -1;
+    proc->p_ppid = -2;
     proctable_add(proc);
 
     return proc;

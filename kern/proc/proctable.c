@@ -3,24 +3,27 @@
 #include <kern/errno.h>
 #include <types.h>
 
-struct proctable_entry *proctable[32];
-pid_t next_pid = 2;
+struct proctable_entry *proctable[256];
 
 /*
  * Add the process to the proctable.
  */
 int proctable_add(struct proc *process) {
-    /* Do some error checking. */
-    if(next_pid == PID_MAX) {
-        kprintf("next_pid is too big!\n");
-        return 0;
-    }
-
-    if(proctable[next_pid] != NULL) {
-        kprintf("proctable[next_pid] is not null!\n");
-        return 0;
-    }
     
+    /* Find a free spot in the proctable. */
+    pid_t i;
+    pid_t next_pid = -1;
+    for(i = 1; i < 256; i++) {
+        if(proctable[i] == NULL) {
+            next_pid = i;
+            break;
+        } 
+    }
+   
+    if(next_pid == -1) {
+        kprintf("next_pid is -1!\n");
+    } 
+
     /* Create a new proctable_entry for the proctable. */
     struct proctable_entry *new_pte = kmalloc(sizeof(struct proctable_entry));
     
@@ -42,7 +45,6 @@ int proctable_add(struct proc *process) {
    
     /* Put the proctable_entry into the proctable. */
     proctable[next_pid] = new_pte;
-    next_pid++;
     return 1;
 }
 
