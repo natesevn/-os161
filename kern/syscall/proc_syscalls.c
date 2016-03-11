@@ -303,7 +303,6 @@ pid_t sys_getpid(void) {
  * exit status in the status pointer. 
  */
 pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
-    kprintf("wait for pid\n"); 
     /* Do error checking on the arguments. */
     if(options != 0) {
         return EINVAL;
