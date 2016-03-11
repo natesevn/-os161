@@ -3,7 +3,7 @@
 #include <kern/errno.h>
 #include <types.h>
 
-struct proctable_entry *proctable[PID_MAX];
+struct proctable_entry *proctable[32];
 pid_t next_pid = 2;
 
 /*

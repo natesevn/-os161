@@ -10,7 +10,7 @@ struct proctable_entry {
 };
 
 /* Global process table */
-extern struct proctable_entry *proctable[PID_MAX];
+extern struct proctable_entry *proctable[32];
 
 /* Global pid to assign new processes */
 extern pid_t next_pid;
