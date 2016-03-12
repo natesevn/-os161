@@ -67,7 +67,10 @@ struct proc {
     struct lock *filetable_lock;
 
     pid_t p_pid;    /* process id */
-    pid_t p_ppid;   /* parent process id */    
+    pid_t p_ppid;   /* parent process id */
+    int p_exited;   /* exited or not */
+    int p_exitcode; /* exit code */
+    struct semaphore *p_sem;  /* synch primitive for waitpid and exit */
 };
 
 /* This is the process structure for the kernel and for kernel-only threads. */

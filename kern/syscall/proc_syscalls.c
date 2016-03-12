@@ -303,6 +303,7 @@ pid_t sys_getpid(void) {
  * exit status in the status pointer. 
  */
 pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
+    
     /* Do error checking on the arguments. */
     if(options != 0) {
         return EINVAL;
@@ -312,17 +313,17 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
         return ESRCH;
     }
     
-    if(proctable[pid]->pte_proc->p_ppid != curproc->p_pid) {
+    if(proctable[pid]->p_ppid != curproc->p_pid) {
         return ECHILD;
     }
     
     /* Wait for the child to exit. */
-    if(proctable[pid]->pte_exited == 0) {
-        P(proctable[pid]->pte_sem);
+    if(proctable[pid]->p_exited == 0) {
+        P(proctable[pid]->p_sem);
     }
 
     /* Copy exit status to status pointer and check for errors */
-    int copy_result = copyout((const void *)&proctable[pid]->pte_exitcode, 
+    int copy_result = copyout((const void *)&proctable[pid]->p_exitcode, 
                         (userptr_t)status, sizeof(int));
     if(copy_result) {
         return copy_result;
@@ -340,15 +341,33 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
  * Does not return.
  */
 void sys__exit(int exitcode) {
-    /* Changes the proctable entry's fields to indicate an exit. */
-    proctable[curproc->p_pid]->pte_exited = 1; 
-    proctable[curproc->p_pid]->pte_exitcode = exitcode;
-    V(proctable[curproc->p_pid]->pte_sem);
     
-    /* Detach the curernt thread from the process and thread_exit. */
-    /*if(proctable[curproc->p_ppid]->pte_exited == 1) {
-        proc_destroy(curproc);
-    }*/
+    /* Change the proctable entry's fields to indicate an exit. */
+    proctable[curproc->p_pid]->p_exited = 1; 
+    proctable[curproc->p_pid]->p_exitcode = _MKWAIT_EXIT(exitcode);
+    V(proctable[curproc->p_pid]->p_sem);
+    
+    /* Check if the parent has already exited. */   
+    if(proctable[curproc->p_ppid]->p_exited == 1) { 
+        struct proc *destroyproc = curproc;
+        struct thread *movethread = curthread;
 
+        /* Clean up any children that stuck around for its parent. */
+        int i;
+        for(i = 0; i < PID_MAX; i++) {
+            if(proctable[i] != NULL) {
+                if(proctable[i]->p_ppid == destroyproc->p_pid
+                    && proctable[i]->p_exited == 1) {
+                    proctable_remove(proctable[i]->p_pid);
+                }
+            }
+        }
+
+        /* Detach the current thread and destroy the process. */
+        proc_remthread(curthread);
+        proc_addthread(kproc, movethread);
+        proctable_remove(destroyproc->p_pid);
+    }
+    
     thread_exit(); 
 }

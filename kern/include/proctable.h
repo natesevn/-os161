@@ -10,10 +10,8 @@ struct proctable_entry {
 };
 
 /* Global process table */
-extern struct proctable_entry *proctable[PID_MAX];
-
-/* Global pid to assign new processes */
-//pid_t PTE_PID_LIMIT = 256;
+//extern struct proctable_entry *proctable[PID_MAX];
+extern struct proc *proctable[PID_MAX];
 
 int proctable_add(struct proc *process);
 int proctable_remove(pid_t pid);

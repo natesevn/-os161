@@ -99,8 +99,8 @@ proc_create(const char *name)
     proc->filetable_lock = lock_create("filetable_lock");
 
     /* Add the process to the proctable */
-    proc->p_pid = -1;
-    proc->p_ppid = -2;
+    proc->p_pid = 1;
+    proc->p_ppid = 1;
     proctable_add(proc);
 
     return proc;
@@ -195,7 +195,7 @@ proc_destroy(struct proc *proc)
     	proc->filetable[i] = NULL;
     }
     lock_destroy(proc->filetable_lock);
-    
+    sem_destroy(proc->p_sem);
 	kfree(proc->p_name);
 	kfree(proc);
 }

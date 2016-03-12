@@ -44,6 +44,8 @@
 #include "opt-synchprobs.h"
 #include "opt-sfs.h"
 #include "opt-net.h"
+#include <proc_syscalls.h>
+#include <current.h>
 
 /*
  * In-kernel menu and command dispatcher.
@@ -115,6 +117,7 @@ common_prog(int nargs, char **args)
 {
 	struct proc *proc;
 	int result;
+    //int status, retval;
 
 #if OPT_SYNCHPROBS
 	kprintf("Warning: this probably won't work with a "
@@ -137,12 +140,11 @@ common_prog(int nargs, char **args)
 		return result;
 	}
 
-    //while(1);
-
 	/*
 	 * The new process will be destroyed when the program exits...
 	 * once you write the code for handling that.
 	 */
+    P(proc->p_sem);
 
 	return 0;
 }
