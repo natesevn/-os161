@@ -3,7 +3,7 @@
 #include <kern/errno.h>
 #include <types.h>
 
-struct proctable_entry *proctable[256];
+struct proctable_entry *proctable[PID_MAX];
 
 /*
  * Add the process to the proctable.

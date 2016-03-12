@@ -308,10 +308,6 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
         return EINVAL;
     }
 
-    if(status == NULL) {
-        return EFAULT;
-    }
-    
     if(pid < PID_MIN || pid > PID_MAX) {
         return ESRCH;
     }
@@ -344,8 +340,15 @@ pid_t sys_waitpid(pid_t pid, int *status, int options, int *retval) {
  * Does not return.
  */
 void sys__exit(int exitcode) {
+    /* Changes the proctable entry's fields to indicate an exit. */
     proctable[curproc->p_pid]->pte_exited = 1; 
     proctable[curproc->p_pid]->pte_exitcode = exitcode;
     V(proctable[curproc->p_pid]->pte_sem);
-    thread_exit();    
+    
+    /* Detach the curernt thread from the process and thread_exit. */
+    /*if(proctable[curproc->p_ppid]->pte_exited == 1) {
+        proc_destroy(curproc);
+    }*/
+
+    thread_exit(); 
 }
