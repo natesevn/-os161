@@ -356,8 +356,9 @@ void sys__exit(int exitcode) {
         int i;
         for(i = 0; i < PID_MAX; i++) {
             if(proctable[i] != NULL) {
-                if(proctable[i]->p_ppid == destroyproc->p_pid
-                    && proctable[i]->p_exited == 1) {
+                if(proctable[i]->p_ppid == destroyproc->p_ppid
+                    && proctable[i]->p_exited == 1
+                    && proctable[i] != destroyproc) {
                     proctable_remove(proctable[i]->p_pid);
                 }
             }
