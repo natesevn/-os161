@@ -79,7 +79,6 @@ pid_t sys_fork(struct trapframe *tf, int *retval) {
     struct addrspace *child_as;
     success = as_copy(curproc->p_addrspace, &child_as);
     if(success != 0) {
-        //kfree(child_tf);
         return ENOMEM;
     }
     
@@ -146,6 +145,8 @@ int sys_execv(const char *program, char **args) {
     while(args[numArgs] != NULL) { 
         numArgs++;
     }
+
+    /* Array to store the size of each copied in string. */
     int argSizes[numArgs];  
     
     /* Copy in user arguments to kernel buffer. */
@@ -176,7 +177,6 @@ int sys_execv(const char *program, char **args) {
         if(copysuccess) {
             kfree(progname);
             kfree(karg);
-            //kfree(tempStrPtr);
             kfree(tempArg);
             return copysuccess;
         }
