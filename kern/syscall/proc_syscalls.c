@@ -117,8 +117,8 @@ int sys_execv(const char *program, char **args) {
     struct vnode *v;
     struct addrspace *new_as, *old_as;
     vaddr_t entrypoint, stackptr;
-    char **karg, **tempStrPtr;
-    char *progname, *tempArg; 
+    char **karg;
+    char *progname, *tempArg;
     int copysuccess = 0;
     int i, j, numArgs, result; 
     size_t originalLen, len;
@@ -146,48 +146,37 @@ int sys_execv(const char *program, char **args) {
     while(args[numArgs] != NULL) { 
         numArgs++;
     }
-    numArgs++;     
+    int argSizes[numArgs];  
     
     /* Copy in user arguments to kernel buffer. */
-    karg = (char **)kmalloc(numArgs*sizeof(char *));
+    karg = (char **)kmalloc(sizeof(char *));
     if(karg == NULL) {
         kfree(progname);
         return ENOMEM;
     }
+    
+    copysuccess = copyin((const_userptr_t)args, karg, sizeof(char *));
+    if(copysuccess) {
+        kfree(progname);
+        kfree(karg);
+        return copysuccess;
+    }
 
-    for(i=0; i<numArgs-1; i++) {
-        tempStrPtr = (char **)kmalloc(sizeof(char *));
-        if(tempStrPtr == NULL) {
-            kfree(progname);
-            kfree(karg);
-            return ENOMEM;
-        }
+    for(i=0; i<numArgs; i++) {
 
         tempArg = (char *)kmalloc(sizeof(char)*ARG_MAX);
-        if(tempStrPtr == NULL) {
+        if(tempArg == NULL) {
             kfree(progname);
             kfree(karg);
-            kfree(tempStrPtr);
             return ENOMEM;
         }
 
-        /* Copy in pointer pointing to a string pointer. */
-        copysuccess = copyin((const_userptr_t)args, tempStrPtr, sizeof(char *));
-        if(copysuccess) {
-            kfree(progname);
-            kfree(karg);
-            kfree(tempStrPtr);
-            kfree(tempArg);
-            return copysuccess;
-        }
-        args += sizeof(char *);
-
         /* Copy in string pointed to by copied pointer. */
-        copysuccess = copyinstr((const_userptr_t)*tempStrPtr, tempArg, PATH_MAX, &originalLen);
+        copysuccess = copyinstr((const_userptr_t)args[i], tempArg, ARG_MAX, &originalLen);
         if(copysuccess) {
             kfree(progname);
             kfree(karg);
-            kfree(tempStrPtr);
+            //kfree(tempStrPtr);
             kfree(tempArg);
             return copysuccess;
         }
@@ -197,6 +186,7 @@ int sys_execv(const char *program, char **args) {
         if(len%4 != 0) {
             len = len + (4 - len%4);
         }
+        argSizes[i] = len;
 
         /* Pad user argument with '\0' to align them. */
         karg[i] = (char *)kmalloc(len*sizeof(char));
@@ -208,9 +198,7 @@ int sys_execv(const char *program, char **args) {
                 karg[i][j] = tempArg[j];
             }
         }
-
         kfree(tempArg);
-        kfree(tempStrPtr); 
     }
     karg[i] = NULL;
 
@@ -221,7 +209,7 @@ int sys_execv(const char *program, char **args) {
         kfree(karg);
         return result;
     }
-    
+
     new_as = as_create();
     if(new_as == NULL) {
         kfree(progname);
@@ -254,10 +242,8 @@ int sys_execv(const char *program, char **args) {
 
     /* Copy each string from kernel to user stack. */
     for(i=numArgs-1; i>=0; i--) {
-        len = strlen(karg[i]);
-
-        stackptr = stackptr - len;
-        copysuccess = copyoutstr(karg[i], (userptr_t)stackptr, len, NULL);
+        stackptr = stackptr - argSizes[i];
+        copysuccess = copyoutstr(karg[i], (userptr_t)stackptr, argSizes[i], NULL);
         if(copysuccess) {
             kfree(progname);
             kfree(karg);
@@ -266,10 +252,16 @@ int sys_execv(const char *program, char **args) {
         karg[i] = (char *)stackptr;
     }   
 
-    /* Copy each string pointer address from kernel to user stack. */
-    for(i=numArgs; i>=0; i--) {
+    /* Manually "copy" the NULL pointer in. */
+    stackptr -= 4*sizeof(char);
+
+    /* 
+     * Copy each string pointer address from kernel to user stack. 
+     * Ignore the NULL pointer because that causes problems.
+     */
+    for(i=numArgs-1; i>=0; i--) {
         stackptr = stackptr - sizeof(char *);
-        copysuccess = copyout(karg[i], (userptr_t)stackptr, sizeof(char *));
+        copysuccess = copyout((karg + i), (userptr_t)stackptr, sizeof(char *));      
         if(copysuccess) {
             kfree(progname);
             kfree(karg);
@@ -279,10 +271,10 @@ int sys_execv(const char *program, char **args) {
 
     kfree(progname);
     kfree(karg);
-    
+
     /* Return to user mode. */
-    enter_new_process(0, NULL, NULL, stackptr, entrypoint);
-    
+    enter_new_process(numArgs, (userptr_t) stackptr, NULL, stackptr, entrypoint);
+
     panic("enter_new_process returned\n");
     return EINVAL;
 }    
