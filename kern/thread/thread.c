@@ -35,6 +35,8 @@
 
 #include <types.h>
 #include <kern/errno.h>
+#include <kern/wait.h>
+#include <limits.h>
 #include <lib.h>
 #include <array.h>
 #include <cpu.h>
@@ -50,7 +52,8 @@
 #include <addrspace.h>
 #include <mainbus.h>
 #include <vnode.h>
-#include "opt-synchprobs.h"
+#include <pid.h>
+
 
 /* Magic number used as a guard value on kernel thread stacks. */
 #define THREAD_STACK_MAGIC 0xbaadf00d
@@ -535,8 +538,10 @@ thread_fork(const char *name,
 	 * for the spllower() that will be done releasing it.
 	 */
 	newthread->t_iplhigh_count++;
+
 	/* Set up the switchframe so entrypoint() gets called */
 	switchframe_init(newthread, entrypoint, data1, data2);
+
 	/* Lock the current cpu's run queue and make the new thread runnable */
 	thread_make_runnable(newthread, false);
 
@@ -755,17 +760,6 @@ thread_startup(void (*entrypoint)(void *data1, unsigned long data2),
 	/* Enable interrupts. */
 	spl0();
 
-#if OPT_SYNCHPROBS
-	/* Yield a random number of times to get a good mix of threads. */
-	{
-		int i, n;
-		n = random()%161 + random()%161;
-		for (i=0; i<n; i++) {
-			thread_yield();
-		}
-	}
-#endif
-
 	/* Call the function. */
 	entrypoint(data1, data2);
 
@@ -786,22 +780,28 @@ void
 thread_exit(void)
 {
 	struct thread *cur;
+
 	cur = curthread;
 
-	/* Detach from our process only if it hasn't been already detached. */
-    if(cur->t_proc != NULL) {
-    	proc_remthread(cur);
-    }
+	/* We should be attached only to the kernel process. */
+	KASSERT(cur->t_proc == kproc);
 
-	/* Make sure we *are* detached (move this only if you're sure!) */
+	/* Detach from the kernel process. */
+	proc_remthread(cur);
+
+	/* Make sure we *are* detached. */
 	KASSERT(cur->t_proc == NULL);
 
 	/* Check the stack guard band. */
 	thread_checkstack(cur);
 
 	/* Interrupts off on this processor */
-    splhigh();
+        splhigh();
+
+	/* This doesn't come back... */
 	thread_switch(S_ZOMBIE, NULL, NULL);
+
+	/* ...so if it does, something's wrong. */
 	panic("braaaaaaaiiiiiiiiiiinssssss\n");
 }
 
