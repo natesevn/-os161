@@ -1,2 +1,20 @@
 49090137    Yong Chie   Gui
 54206131 	Nicholas    Handaja
+
+Assignment 4:
+> Yong: Implemented all the system calls (open, close, write, read, dup2, 
+getcwd, chdir  and lseek). Did testing to ensure fsyscalltest and filetest 
+works.
+
+> Nicholas: Implemented the filetable and its creation, and the handling of 
+each newly implemented system call in syscall.c. Did testing to ensure badcall 
+and bigseek works. 
+
+
+Assignment 5:
+> Yong: Implemented the PID management table and algorithms as well as the 
+system calls waitpid, getpid, and exit. Did testing to make sure forktest 
+works.
+
+> Nicholas: Implemented fork and execv. Did testing to make sure forktest, 
+argtest, farm, forkbomb, faulter, and bigfile works.
