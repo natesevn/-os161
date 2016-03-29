@@ -40,6 +40,11 @@
 
 struct vnode;
 
+struct pagetable_entry {
+    int pte_permissions;    /* valid(1), dirty(1), ref(1), protection(3) */
+    vaddr_t pte_vaddr;      /* virtual address */
+    paddr_t pte_paddr;      /* physical address */
+};
 
 /*
  * Address space - data structure associated with the virtual memory
@@ -47,18 +52,28 @@ struct vnode;
  *
  * You write this.
  */
-
 struct addrspace {
 #if OPT_DUMBVM
-        vaddr_t as_vbase1;
-        paddr_t as_pbase1;
-        size_t as_npages1;
-        vaddr_t as_vbase2;
-        paddr_t as_pbase2;
-        size_t as_npages2;
-        paddr_t as_stackpbase;
+    vaddr_t as_vbase1;
+    paddr_t as_pbase1;
+    size_t as_npages1;
+    vaddr_t as_vbase2;
+    paddr_t as_pbase2;
+    size_t as_npages2;
+    paddr_t as_stackpbase;
 #else
-        /* Put stuff here for your VM system */
+    /* Put stuff here for your VM system */
+    pagetable_entry *as_stack;      /* stack pagetable binary tree's root */
+    vaddr_t as_stack_start;         /* starting address of stack */
+    vaddr_t as_stack_end;           /* ending address of stack */
+
+    pagetable_entry *as_heap;       /* heap pagetable binary tree's root */
+    vaddr_t as_heap_start;          /* starting address of heap */
+    vaddr_t as_heap_end;            /* ending address of heap */
+
+    pagetable_entry *as_segments;   /* segment pagetable binary tree's root */ 
+    vaddr_t as_segments_start;      /* starting address of other segments */
+    vaddr_t as_segments_end;        /* ending address of other segments */
 #endif
 };
 
