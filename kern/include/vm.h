@@ -36,6 +36,30 @@
  * You'll probably want to add stuff here.
  */
 
+/* Page states */
+typedef enum {
+    FREE,
+    FIXED,
+    DIRTY,
+    CLEAN
+} page_state_t;
+
+/* Coremap data structure */
+struct coremap_entry {
+
+    /*
+     * Which address space is contained in this pframe.
+     * Which virtual address is mapped to this pframe.
+     */
+    struct addrspace* as;
+    vaddr_t va;
+
+    /* Variable to determine if the adjacent frames are contiguous. */
+    //TODO:
+
+    /* Page state */
+    page_state_t state;
+}
 
 #include <machine/vm.h>
 
@@ -52,6 +76,7 @@ void vm_bootstrap(void);
 int vm_fault(int faulttype, vaddr_t faultaddress);
 
 /* Allocate/free kernel heap pages (called by kmalloc/kfree) */
+paddr_t getppages(unsigned npages);
 vaddr_t alloc_kpages(unsigned npages);
 void free_kpages(vaddr_t addr);
 
