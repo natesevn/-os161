@@ -30,6 +30,10 @@
 #ifndef _VM_H_
 #define _VM_H_
 
+#include <machine/vm.h>
+#include <types.h>
+#include <kern/types.h>
+
 /*
  * VM system-related definitions.
  *
@@ -54,14 +58,13 @@ struct coremap_entry {
     struct addrspace* as;
     vaddr_t va;
 
-    /* Variable to determine if the adjacent frames are contiguous. */
-    //TODO:
+    /* Variables to determine whether page is part of a continuous block */
+    bool page_start;
+    unsigned block_size;
 
     /* Page state */
     page_state_t state;
-}
-
-#include <machine/vm.h>
+};
 
 /* Fault-type arguments to vm_fault() */
 #define VM_FAULT_READ        0    /* A read was attempted */
@@ -82,7 +85,9 @@ void free_kpages(vaddr_t addr);
 
 /* TLB shootdown handling called from interprocessor_interrupt */
 void vm_tlbshootdown_all(void);
-void vm_tlbshootdown(const struct tlbshootdown *);
+void vm_tlbshootdown(const struct tlbshootdown *ts);
 
-
+/* Hashing function for coremap array */
+unsigned long getIndex(paddr_t page_addr);
+paddr_t getPaddr(unsigned long index);
 #endif /* _VM_H_ */
