@@ -46,6 +46,12 @@ struct pagetable_entry {
     paddr_t pte_paddr;      /* physical address */
 };
 
+struct region {
+    vaddr_t as_vbase;
+    paddr_t as_pbase;
+    size_t as_npages;
+};
+
 /*
  * Address space - data structure associated with the virtual memory
  * space of a process.
@@ -63,17 +69,31 @@ struct addrspace {
     paddr_t as_stackpbase;
 #else
     /* Put stuff here for your VM system */
-    pagetable_entry *as_stack;      /* stack pagetable binary tree's root */
-    vaddr_t as_stack_start;         /* starting address of stack */
-    vaddr_t as_stack_end;           /* ending address of stack */
+//    pagetable_entry *as_stack;      /* stack pagetable binary tree's root */
+//    vaddr_t as_stack_start;         /* starting address of stack */
+//    vaddr_t as_stack_end;           /* ending address of stack */
 
-    pagetable_entry *as_heap;       /* heap pagetable binary tree's root */
-    vaddr_t as_heap_start;          /* starting address of heap */
-    vaddr_t as_heap_end;            /* ending address of heap */
+//    pagetable_entry *as_heap;       /* heap pagetable binary tree's root */
+//    vaddr_t as_heap_start;          /* starting address of heap */
+//    vaddr_t as_heap_end;            /* ending address of heap */
 
-    pagetable_entry *as_segments;   /* segment pagetable binary tree's root */ 
-    vaddr_t as_segments_start;      /* starting address of other segments */
-    vaddr_t as_segments_end;        /* ending address of other segments */
+//    pagetable_entry *as_segments;   /* segment pagetable binary tree's root */ 
+//    vaddr_t as_segments_start;      /* starting address of other segments */
+//    vaddr_t as_segments_end;        /* ending address of other segments */
+
+    /* DUMBVM assumes user will only ever use 2 regions. We fix that: */
+    struct region* regionlist;
+
+    /* DUMBVM assumes that there is no such thing as a heap. We fix that: */
+    vaddr_t as_heap_start, as_heap_end;
+
+    /* DUMBVM assumes that the stack will never grow. We fix that: */
+    vaddr_t as_stack_start, as_stack_end;
+
+    pagetable_entry *as_stack;
+    pagetable_entry *as_heap;
+    pagetable_entry *as_other;
+
 #endif
 };
 
@@ -142,6 +162,17 @@ int               as_define_stack(struct addrspace *as, vaddr_t *initstackptr);
  */
 
 int load_elf(struct vnode *v, vaddr_t *entrypoint);
+
+/*
+ * Helper functions
+ *    pagetable_create - initialize page table; called by as_create
+ *    pagetable_destroy - free pagetable; called by as_destroy
+ *    get_page_table_entry - get the pagetable entry pointer (?)
+ */
+
+ void pagetable_create(struct pagetable_entry *pt);
+ void pagetable_destroy(struct pagetable_entry *pt);
+ void get_pagetable_entry(struct addrspace *as, vaddr_t vaddr);
 
 
 #endif /* _ADDRSPACE_H_ */

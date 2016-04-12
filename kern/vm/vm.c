@@ -48,7 +48,6 @@ void vm_bootstrap(void){
      */
     freeaddr = firstaddr + num_ppages * sizeof(struct coremap_entry);
     freeaddr = ROUNDUP(freeaddr, PAGE_SIZE);
-    kprintf("last %d + first %d + free %d + stuff %d\n", lastaddr, firstaddr, freeaddr, (lastaddr-freeaddr)%PAGE_SIZE);
     
     KASSERT((lastaddr - freeaddr) % PAGE_SIZE == 0);    
 
@@ -56,7 +55,6 @@ void vm_bootstrap(void){
     num_dirty = (firstaddr - 0) / PAGE_SIZE;
     num_fixed = (freeaddr - firstaddr) / PAGE_SIZE; 
     num_free = (lastaddr - freeaddr) / PAGE_SIZE;
-    kprintf("dirty %d + fixed %d + free %d + total %d\n", num_dirty, num_fixed, num_free, num_ppages); 
     KASSERT(num_fixed + num_free == num_ppages);
 
     /* 
