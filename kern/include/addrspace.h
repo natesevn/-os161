@@ -90,9 +90,7 @@ struct addrspace {
     /* DUMBVM assumes that the stack will never grow. We fix that: */
     vaddr_t as_stack_start, as_stack_end;
 
-    pagetable_entry *as_stack;
-    pagetable_entry *as_heap;
-    pagetable_entry *as_other;
+    pagetable_entry *as_pages;
 
 #endif
 };

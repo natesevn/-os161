@@ -80,27 +80,41 @@ as_create(void)
 	return as;
 }
 
-
+/*
+ * Copy old addrspace into a new addrspace.
+ * Returns: 0 upon success
+ *          errno otherwise
+ */
 int
 as_copy(struct addrspace *old, struct addrspace **ret)
 {
 	struct addrspace *new;
+    int regionSize, i;
 
-	new = as_create();
+	/* Create new addrspace. */
+    new = as_create();
 	if (new==NULL) {
 		return ENOMEM;
 	}
 
-	new->as_vbase1 = old->as_vbase1;
-	new->as_npages1 = old->as_npages1;
-	new->as_vbase2 = old->as_vbase2;
-	new->as_npages2 = old->as_npages2;
-
-	/* (Mis)use as_prepare_load to allocate some physical memory. */
+    /* Copy region list into new addrspace. */ 
+    regionSize = sizeof(old->regionlist)/sizeof(old->regioinlist[0]);
+    new->regionlist = (struct region*)
+                      kmalloc(regionSize*sizeof(struct region));
+    
+    for(i=0; i<regionSize; i++) {
+        new->regionlist[i].as_vbase = old->regionlist[i].as_vbase;
+        new->regionlist[i].as_pbase = old->regionlist[i].as_pbase;
+        new->regionlist[i].as_npages = old->regionlist[i].as_npages;
+    }
+    
+	/* Allocate physical pages for the new addrspace. */
 	if (as_prepare_load(new)) {
 		as_destroy(new);
 		return ENOMEM;
 	}
+
+    //TODO: Copy remaining mappings (data) from old PTE to new PTE. 
 
 	KASSERT(new->as_pbase1 != 0);
 	KASSERT(new->as_pbase2 != 0);
@@ -212,23 +226,74 @@ as_define_region(struct addrspace *as, vaddr_t vaddr, size_t sz,
 	return ENOSYS;
 }
 
+/*
+ * Takes in an addrspace struct and gets physical pages for each region.
+ * DUMBVM previously only mapped the first page of each block of allocated 
+ * memory. 
+ * We change that so that each virtual page is mapped to a physical frame.
+ * Returns: 0 if successful
+ *          errno otherwise
+ */
 int
 as_prepare_load(struct addrspace *as)
 {
+    //TODO: CHANGE THIS
 	KASSERT(as->as_pbase1 == 0);
 	KASSERT(as->as_pbase2 == 0);
 	KASSERT(as->as_stackpbase == 0);
 
-	as->as_pbase1 = getppages(as->as_npages1);
-	if (as->as_pbase1 == 0) {
-		return ENOMEM;
-	}
+    struct region *regionlist = as->regionlist;
+    struct pagetable_entry *pages;
+    vaddr_t vaddr;
+    paddr_t paddr;
+    int regionSize = sizeof(regionlist)/sizeof(regionlist.[0]);
+    int i, j=0, k=0;
+    size_t numPages = 0;
 
-	as->as_pbase2 = getppages(as->as_npages2);
-	if (as->as_pbase2 == 0) {
-		return ENOMEM;
-	}
+    /* Get number of pages from number of regions * size of each region. */
+    for(i=0; i<regionSize; i++) {
+        numPages += as->regionlist[i].as_npages;
+    }
 
+    /*
+     * Allocate physical pages for each region, and save the mapping to our
+     * page table.
+     */
+    as->pages = (struct pagetable_entry*)
+                kmalloc(numPages * sizeof(struct pagetable_entry));
+    for(i=0; i<regionSize; i++) {
+    
+        /* Setup page table entries for this region. */
+        vaddr_t = regionlist[i].as_vbase;
+        
+        /* Create a new page table entry. */
+        as->pages[k].pte_vaddr = vaddr;
+        paddr = alloc_kpages(1);
+        if(paddr == 0) {
+            return ENOMEM;
+        }
+        as->pages[k].paddr = paddr;
+
+        k++;        
+        vaddr += PAGE_SIZE;
+        
+        /* Populate subsequent page table entries. */
+        for(j=0; j<regionlist[i].as_npages; j++) {
+        
+            as->pages[k].pte_vaddr = vaddr;
+            paddr = alloc_kpages(1);
+            if(paddr == 0) {
+                return ENOMEM;
+            }
+            as->pages[k].pte_paddr = paddr;
+        
+            vaddr += PAGE_SIZE;
+            k++;
+        }
+    }
+    
+    /* Allocate physical pages for stack and heap. */
+    //TODO: REPLACE DUMBVM WAY OF DOING IT
 	as->as_stackpbase = getppages(DUMBVM_STACKPAGES);
 	if (as->as_stackpbase == 0) {
 		return ENOMEM;
