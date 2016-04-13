@@ -145,24 +145,15 @@ as_destroy(struct addrspace *as)
     kfree(as);
 }
 
+/*
+ * Perform TLB shootdown on the current address space.
+ */
 void
 as_activate(void)
 {
-	int i, spl;
-	struct addrspace *as;
-
-	as = proc_getas();
-	if (as == NULL) {
-		return;
-	}
-
-	/* Disable interrupts on this CPU while frobbing the TLB. */
-	spl = splhigh();
-
-	for (i=0; i<NUM_TLB; i++) {
-		tlb_write(TLBHI_INVALID(i), TLBLO_INVALID(), i);
-	}
-
+	/* Disable interrupts on this CPU and shoot down the tlb entries. */
+	int spl = splhigh();
+    vm_tlbshootdown_all();
 	splx(spl);
 }
 
@@ -297,9 +288,9 @@ as_prepare_load(struct addrspace *as)
 		return ENOMEM;
 	}
 
-	as_zero_region(as->as_pbase1, as->as_npages1);
-	as_zero_region(as->as_pbase2, as->as_npages2);
-	as_zero_region(as->as_stackpbase, DUMBVM_STACKPAGES);
+	//as_zero_region(as->as_pbase1, as->as_npages1);
+	//as_zero_region(as->as_pbase2, as->as_npages2);
+	//as_zero_region(as->as_stackpbase, DUMBVM_STACKPAGES);
 
 	return 0;
 }
@@ -315,15 +306,12 @@ as_complete_load(struct addrspace *as)
 	return 0;
 }
 
+/*
+ * Returns the USERSTACK inside stackptr
+ */
 int
 as_define_stack(struct addrspace *as, vaddr_t *stackptr)
 {
-	/*
-	 * Write this.
-	 */
-
-	KASSERT(as->as_stackpbase != 0);
-
 	*stackptr = USERSTACK;
 	return 0;
 }
@@ -341,7 +329,7 @@ pagetable_create(void) {
 }
 
 /*
- * Desetroy the provided page table.
+ * Destroy the provided page table.
  */
 void
 pagetable_destroy(struct pagetable_entry *pt) {

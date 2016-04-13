@@ -168,9 +168,9 @@ int load_elf(struct vnode *v, vaddr_t *entrypoint);
  *    get_page_table_entry - get the pagetable entry pointer (?)
  */
 
- void pagetable_create(struct pagetable_entry *pt);
- void pagetable_destroy(struct pagetable_entry *pt);
- void get_pagetable_entry(struct addrspace *as, vaddr_t vaddr);
+void pagetable_create(struct pagetable_entry *pt);
+void pagetable_destroy(struct pagetable_entry *pt);
+void get_pagetable_entry(struct addrspace *as, vaddr_t vaddr);
 
 
 #endif /* _ADDRSPACE_H_ */
