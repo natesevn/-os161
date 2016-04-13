@@ -135,16 +135,11 @@ as_copy(struct addrspace *old, struct addrspace **ret)
 void
 as_destroy(struct addrspace *as)
 {
-    int pagetable_size, i;
-   
     /* Free up the region list. */
     kfree(as->region_list);
     
-    /* Free up the page table entries. */
-    pagetable_size = sizeof(old->as_pages)/sizeof(old->as_pages[0]); 
-    for(i = 0; i < pagetable_size; i++) {
-        kfree(as->as_pages[i];
-    }
+    /* Free up the page table entries. */ 
+    pagetable_destroy(as->as_pages);
 
     /* Free up the address space itself. */
     kfree(as);
@@ -333,19 +328,46 @@ as_define_stack(struct addrspace *as, vaddr_t *stackptr)
 	return 0;
 }
 
-//TODO:
-void
-pagetable_create(struct pagetable_entry *pt) {
-    (void)*pt;
+/*
+ * Initialize a new page table and return it.
+ */
+struct pagetable_entry *
+pagetable_create(void) {
+    struct pagetable_entry *pt = (struct pagetable_entry *) 
+                                    kmalloc(sizeof(struct pagetable_entry));
+    
+    KASSERT(newpt != NULL);
+    return pt;
 }
 
+/*
+ * Desetroy the provided page table.
+ */
 void
 pagetable_destroy(struct pagetable_entry *pt) {
-    (void)*pt;
+    int pagetable_size, i;
+
+    /* Free up each page table entry one by one. */
+    pagetable_size = sizeof(pt)/sizeof(pt[0]);
+    for(i = 0; i < pagetable_size; i++) {
+        kfree(pt[i]);
+    }
 }
 
-void
+/*
+ * Find the provided address spaces's page entry specified by vaddr.
+ */
+struct pagetable_entry *
 get_pagetable_entry(struct addrspace *as, vaddr_t vaddr) {
-    (void)*pt;
-    (void)vaddr;
+    int pagetable_size, i;
+
+    /* Search for the pagetable_entry with vaddr. */
+    pagetable_size = sizeof(as->as_pages)/sizeof(as->as_pages[0]);
+    for(i = 0; i < pagetable_size; i++) {
+        if(as->as_pages[i].vaddr == vaddr) {
+            return &as->as_pages[i];
+        }
+    }
+
+    return NULL;
 }
