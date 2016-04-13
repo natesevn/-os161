@@ -44,9 +44,9 @@
  * used. The cheesy hack versions in dumbvm.c are used instead.
  */
 
- #define DUMBVM_STACKPAGES    18
+#define DUMBVM_STACKPAGES    18
 
- static
+static
 void
 as_zero_region(paddr_t paddr, unsigned npages)
 {
@@ -73,9 +73,7 @@ as_create(void)
 	as->as_stack_end = (vaddr_t)0;
 	as->regionlist = NULL;
 
-	pagetable_create(as->as_stack);
-	pagetable_create(as->as_heap);
-	pagetable_create(as->as_other);
+	pagetable_create(as->as_pages);
 
 	return as;
 }
@@ -89,20 +87,20 @@ int
 as_copy(struct addrspace *old, struct addrspace **ret)
 {
 	struct addrspace *new;
-    int regionSize, i;
+    int region_size, pagetable_size, i;
 
 	/* Create new addrspace. */
     new = as_create();
-	if (new==NULL) {
+	if (new == NULL) {
 		return ENOMEM;
 	}
 
     /* Copy region list into new addrspace. */ 
-    regionSize = sizeof(old->regionlist)/sizeof(old->regioinlist[0]);
+    region_size = sizeof(old->regionlist)/sizeof(old->regionlist[0]);
     new->regionlist = (struct region*)
-                      kmalloc(regionSize*sizeof(struct region));
+                      kmalloc(region_size*sizeof(struct region));
     
-    for(i=0; i<regionSize; i++) {
+    for(i = 0; i < region_size; i++) {
         new->regionlist[i].as_vbase = old->regionlist[i].as_vbase;
         new->regionlist[i].as_pbase = old->regionlist[i].as_pbase;
         new->regionlist[i].as_npages = old->regionlist[i].as_npages;
@@ -114,32 +112,42 @@ as_copy(struct addrspace *old, struct addrspace **ret)
 		return ENOMEM;
 	}
 
-    //TODO: Copy remaining mappings (data) from old PTE to new PTE. 
+    /* Copy old PTE's mappings to new PTE */
+    pagetable_size = sizeof(old->as_pages)/sizeof(old->as_pages[0]);
 
-	KASSERT(new->as_pbase1 != 0);
-	KASSERT(new->as_pbase2 != 0);
-	KASSERT(new->as_stackpbase != 0);
+    for(i = 0; i < pagetable_size; i++) {
+        memmove((void *)PADDR_TO_KVADDR(new->as_pages[i]),
+                (const void *)PADDR_TO_KVADDR(old->as_pages[i]),
+                PAGE_SIZE);
 
-	memmove((void *)PADDR_TO_KVADDR(new->as_pbase1),
-		(const void *)PADDR_TO_KVADDR(old->as_pbase1),
-		old->as_npages1*PAGE_SIZE);
-
-	memmove((void *)PADDR_TO_KVADDR(new->as_pbase2),
-		(const void *)PADDR_TO_KVADDR(old->as_pbase2),
-		old->as_npages2*PAGE_SIZE);
-
-	memmove((void *)PADDR_TO_KVADDR(new->as_stackpbase),
-		(const void *)PADDR_TO_KVADDR(old->as_stackpbase),
-		DUMBVM_STACKPAGES*PAGE_SIZE);
+        new->as_pages[i].pte_permissions = old->as_pages[i].pte_permissions;
+        new->as_pages[i].pte_vaddr = old->as_pages[i].pte_vaddr;
+        new->as_pages[i].pte_paddr = old->as_pages[i].pte_paddr;
+    }
 
 	*ret = new;
 	return 0;
 }
 
+/*
+ * Destroy the provided address space.
+ */
 void
 as_destroy(struct addrspace *as)
 {
-	kfree(as);
+    int pagetable_size, i;
+   
+    /* Free up the region list. */
+    kfree(as->region_list);
+    
+    /* Free up the page table entries. */
+    pagetable_size = sizeof(old->as_pages)/sizeof(old->as_pages[0]); 
+    for(i = 0; i < pagetable_size; i++) {
+        kfree(as->as_pages[i];
+    }
+
+    /* Free up the address space itself. */
+    kfree(as);
 }
 
 void
@@ -237,21 +245,16 @@ as_define_region(struct addrspace *as, vaddr_t vaddr, size_t sz,
 int
 as_prepare_load(struct addrspace *as)
 {
-    //TODO: CHANGE THIS
-	KASSERT(as->as_pbase1 == 0);
-	KASSERT(as->as_pbase2 == 0);
-	KASSERT(as->as_stackpbase == 0);
-
     struct region *regionlist = as->regionlist;
     struct pagetable_entry *pages;
     vaddr_t vaddr;
     paddr_t paddr;
-    int regionSize = sizeof(regionlist)/sizeof(regionlist.[0]);
+    int region_size = sizeof(regionlist)/sizeof(regionlist.[0]);
     int i, j=0, k=0;
     size_t numPages = 0;
 
     /* Get number of pages from number of regions * size of each region. */
-    for(i=0; i<regionSize; i++) {
+    for(i = 0; i < region_size; i++) {
         numPages += as->regionlist[i].as_npages;
     }
 
@@ -261,7 +264,7 @@ as_prepare_load(struct addrspace *as)
      */
     as->pages = (struct pagetable_entry*)
                 kmalloc(numPages * sizeof(struct pagetable_entry));
-    for(i=0; i<regionSize; i++) {
+    for(i=0; i<region_size; i++) {
     
         /* Setup page table entries for this region. */
         vaddr_t = regionlist[i].as_vbase;
@@ -331,6 +334,18 @@ as_define_stack(struct addrspace *as, vaddr_t *stackptr)
 }
 
 //TODO:
- void pagetable_create(struct pagetable_entry *pt){}
- void pagetable_destroy(struct pagetable_entry *pt){}
- void get_pagetable_entry(struct addrspace *as, vaddr_t vaddr){}
+void
+pagetable_create(struct pagetable_entry *pt) {
+    (void)*pt;
+}
+
+void
+pagetable_destroy(struct pagetable_entry *pt) {
+    (void)*pt;
+}
+
+void
+get_pagetable_entry(struct addrspace *as, vaddr_t vaddr) {
+    (void)*pt;
+    (void)vaddr;
+}

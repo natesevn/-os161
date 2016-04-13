@@ -82,7 +82,7 @@ struct addrspace {
 //    vaddr_t as_segments_end;        /* ending address of other segments */
 
     /* DUMBVM assumes user will only ever use 2 regions. We fix that: */
-    struct region* regionlist;
+    struct region *regionlist;
 
     /* DUMBVM assumes that there is no such thing as a heap. We fix that: */
     vaddr_t as_heap_start, as_heap_end;
@@ -90,7 +90,7 @@ struct addrspace {
     /* DUMBVM assumes that the stack will never grow. We fix that: */
     vaddr_t as_stack_start, as_stack_end;
 
-    pagetable_entry *as_pages;
+    struct pagetable_entry *as_pages;
 
 #endif
 };

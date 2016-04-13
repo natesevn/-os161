@@ -339,7 +339,7 @@ file      proc/pid.c
 #
 
 file      vm/kmalloc.c
-
+file      vm/addrspace.c
 optofffile dumbvm   vm/addrspace.c
 
 #
