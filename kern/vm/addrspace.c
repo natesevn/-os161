@@ -46,12 +46,12 @@
 
 #define DUMBVM_STACKPAGES    18
 
-static
+/*static
 void
 as_zero_region(paddr_t paddr, unsigned npages)
 {
 	bzero((void *)PADDR_TO_KVADDR(paddr), npages * PAGE_SIZE);
-}
+}*/
 
 /*
  * Allocates space for the structure that holds information about the address
@@ -72,8 +72,7 @@ as_create(void)
 	as->as_stack_start = (vaddr_t)0;
 	as->as_stack_end = (vaddr_t)0;
 	as->regionlist = NULL;
-
-	pagetable_create(as->as_pages);
+	as->as_pages = NULL;
 
 	return as;
 }
@@ -99,11 +98,15 @@ as_copy(struct addrspace *old, struct addrspace **ret)
     region_size = sizeof(old->regionlist)/sizeof(old->regionlist[0]);
     new->regionlist = (struct region*)
                       kmalloc(region_size*sizeof(struct region));
+    if(new->regionlist == NULL) {
+        return ENOMEM;
+    }
     
     for(i = 0; i < region_size; i++) {
         new->regionlist[i].as_vbase = old->regionlist[i].as_vbase;
         new->regionlist[i].as_pbase = old->regionlist[i].as_pbase;
         new->regionlist[i].as_npages = old->regionlist[i].as_npages;
+        new->regionlist[i].permissions = old->regionlist[i].permissions;
     }
     
 	/* Allocate physical pages for the new addrspace. */
@@ -116,8 +119,8 @@ as_copy(struct addrspace *old, struct addrspace **ret)
     pagetable_size = sizeof(old->as_pages)/sizeof(old->as_pages[0]);
 
     for(i = 0; i < pagetable_size; i++) {
-        memmove((void *)PADDR_TO_KVADDR(new->as_pages[i]),
-                (const void *)PADDR_TO_KVADDR(old->as_pages[i]),
+        memmove((void *)PADDR_TO_KVADDR(new->as_pages[i].pte_paddr),
+                (const void *)PADDR_TO_KVADDR(old->as_pages[i].pte_paddr),
                 PAGE_SIZE);
 
         new->as_pages[i].pte_permissions = old->as_pages[i].pte_permissions;
@@ -136,12 +139,12 @@ void
 as_destroy(struct addrspace *as)
 {
     /* Free up the region list. */
-    kfree(as->region_list);
+    kfree(as->regionlist);
     
     /* Free up the page table entries. */ 
     pagetable_destroy(as->as_pages);
 
-    /* Free up the address space itself. */
+   /* Free up the address space itself. */
     kfree(as);
 }
 
@@ -181,11 +184,11 @@ int
 as_define_region(struct addrspace *as, vaddr_t vaddr, size_t sz,
 		 int readable, int writeable, int executable)
 {
-	/*
-	 * Write this.
-	 */
-
+    struct region *regionlist;
 	size_t npages;
+    int permissions;
+    int regionListSize;
+    int i;
 
 	/* Align the region. First, the base... */
 	sz += vaddr & ~(vaddr_t)PAGE_FRAME;
@@ -196,28 +199,50 @@ as_define_region(struct addrspace *as, vaddr_t vaddr, size_t sz,
 
 	npages = sz / PAGE_SIZE;
 
-	/* We don't use these - all pages are read-write */
-	(void)readable;
-	(void)writeable;
-	(void)executable;
+    /* Determine desired permissions. */
+    permissions = 7 & (readable | writeable | executable);
 
-	if (as->as_vbase1 == 0) {
-		as->as_vbase1 = vaddr;
-		as->as_npages1 = npages;
-		return 0;
-	}
+    /* Get size of regionlist array. */
+    regionListSize = sizeof(as->regionlist)/sizeof(as->regionlist[0]);
+    
+    /* Dynamically resize regionlist array by 2 if needed. */
+    if(as->regionlist[regionListSize-1].as_vbase > 0) {
+        
+        /* Copy data from old regionlist to new regionlist. */
+        regionlist = (struct region*)
+                     kmalloc((regionListSize + 2) * sizeof(struct region));    
+        if(regionlist == NULL) {
+            return ENOMEM;
+        }
 
-	if (as->as_vbase2 == 0) {
-		as->as_vbase2 = vaddr;
-		as->as_npages2 = npages;
-		return 0;
-	}
+        for(i=0; i<regionListSize; i++) {
+            regionlist[i].as_vbase = as->regionlist[i].as_vbase;
+            regionlist[i].as_pbase = as->regionlist[i].as_pbase;
+            regionlist[i].as_npages = as->regionlist[i].as_npages;
+            regionlist[i].permissions = as->regionlist[i].permissions;
+        }
+        
+        /* Initialize value of last two additional regions in regionlist. */
+        for(i=0; i<2; i++) {
+            regionlist[regionListSize+i].as_vbase = 0;
+            regionlist[regionListSize+i].as_pbase = 0;
+            regionlist[regionListSize+i].as_npages = 0;
+            regionlist[regionListSize+i].permissions = 0;
+        }
+        regionListSize += 2;
 
-	/*
-	 * Support for more than two regions is not available.
-	 */
-	kprintf("dumbvm: Warning: too many regions\n");
-	return ENOSYS;
+        /* Free old regionlist. */
+        kfree(as->regionlist);
+        as->regionlist = regionlist;
+    }        
+
+    /* Setup new region */
+    as->regionlist[regionListSize -2].as_vbase = vaddr;
+    as->regionlist[regionListSize -2].as_pbase = 0;
+    as->regionlist[regionListSize -2].as_npages = npages;
+    as->regionlist[regionListSize -2].permissions = permissions;
+
+	return 0;
 }
 
 /*
@@ -232,36 +257,71 @@ int
 as_prepare_load(struct addrspace *as)
 {
     struct region *regionlist = as->regionlist;
-    struct pagetable_entry *pages;
-    vaddr_t vaddr;
-    paddr_t paddr;
-    int region_size = sizeof(regionlist)/sizeof(regionlist.[0]);
-    int i, j=0, k=0;
+    vaddr_t vaddr, stackvaddr;
+    paddr_t paddr, stackpaddr;
+    size_t region_size = sizeof(regionlist)/sizeof(regionlist[0]);
+    size_t i=0, j=0, k=0;
+    size_t temp = 0;
     size_t numPages = 0;
+    size_t ptSize = 0;
 
     /* Get number of pages from number of regions * size of each region. */
     for(i = 0; i < region_size; i++) {
         numPages += as->regionlist[i].as_npages;
     }
+    
+    /* Round up numPages to the next power of two. */
+    if(!isPowerTwo(numPages)) {
+        temp = getPowerTwo(numPages);
+        KASSERT(temp > numPages);
+        numPages = temp;
+    }
 
     /*
      * Allocate physical pages for each region, and save the mapping to our
-     * page table.
+     * page table. We allocate at powers of two at a time.
      */
-    as->pages = (struct pagetable_entry*)
-                kmalloc(numPages * sizeof(struct pagetable_entry));
+    
+    /* Create a new page table with INITIAL_SIZE if it does not exist. */
+    if(as->as_pages == NULL) {
+        as->as_pages = pagetable_create(INITIAL_SIZE);
+        if(as->as_pages == NULL) {
+            return ENOMEM;
+        }
+
+        ptSize = 64;
+    }
+    else {
+        /*
+         * Get size of current table and figure on which index is the last
+         * page table entry is. 
+         */
+        ptSize = sizeof(as->as_pages)/sizeof(as->as_pages[0]);
+        while(as->as_pages[i].pte_vaddr != 0) {
+            i++;
+        }
+    }
+    
+    /* If the table is not big enough to hold the data or there aren't enough
+       empty spaces in the table, resize. */
+    if(numPages > ptSize || numPages > ptSize - i) {
+        as->as_pages = pagetable_resize(as->as_pages, ptSize);
+    }
+    
+    /* Start filling in the page table from the index of the last entry. */
+    k = i;
     for(i=0; i<region_size; i++) {
     
         /* Setup page table entries for this region. */
-        vaddr_t = regionlist[i].as_vbase;
+        vaddr = regionlist[i].as_vbase;
         
         /* Create a new page table entry. */
-        as->pages[k].pte_vaddr = vaddr;
-        paddr = alloc_kpages(1);
+        as->as_pages[k].pte_vaddr = vaddr;
+        paddr = getppages(1);
         if(paddr == 0) {
             return ENOMEM;
         }
-        as->pages[k].paddr = paddr;
+        as->as_pages[k].pte_paddr = paddr;
 
         k++;        
         vaddr += PAGE_SIZE;
@@ -269,12 +329,12 @@ as_prepare_load(struct addrspace *as)
         /* Populate subsequent page table entries. */
         for(j=0; j<regionlist[i].as_npages; j++) {
         
-            as->pages[k].pte_vaddr = vaddr;
+            as->as_pages[k].pte_vaddr = vaddr;
             paddr = alloc_kpages(1);
             if(paddr == 0) {
                 return ENOMEM;
             }
-            as->pages[k].pte_paddr = paddr;
+            as->as_pages[k].pte_paddr = paddr;
         
             vaddr += PAGE_SIZE;
             k++;
@@ -282,15 +342,28 @@ as_prepare_load(struct addrspace *as)
     }
     
     /* Allocate physical pages for stack and heap. */
-    //TODO: REPLACE DUMBVM WAY OF DOING IT
-	as->as_stackpbase = getppages(DUMBVM_STACKPAGES);
-	if (as->as_stackpbase == 0) {
-		return ENOMEM;
-	}
+    /* Get top of stack pointer. */
+    as_define_stack(as, &stackvaddr);
+    
+    /* Set up new page for start of stack. */
+    as->as_pages[k].pte_vaddr = stackvaddr;
+    stackpaddr = getppages(1);
+    if(stackpaddr == 0) {
+        return ENOMEM;
+    }
+    k++;
+    
+    as->as_stack_start = as->as_stack_end = stackvaddr;
+    
+    /* Set up new page for start of heap. */
+    as->as_pages[k].pte_vaddr = vaddr;
+    paddr = getppages(1);
+    if(paddr == 0) {
+        return ENOMEM;
+    }
+    k++;
 
-	//as_zero_region(as->as_pbase1, as->as_npages1);
-	//as_zero_region(as->as_pbase2, as->as_npages2);
-	//as_zero_region(as->as_stackpbase, DUMBVM_STACKPAGES);
+    as->as_heap_start = as->as_heap_end = vaddr; 
 
 	return 0;
 }
@@ -312,6 +385,7 @@ as_complete_load(struct addrspace *as)
 int
 as_define_stack(struct addrspace *as, vaddr_t *stackptr)
 {
+    (void)as;
 	*stackptr = USERSTACK;
 	return 0;
 }
@@ -320,11 +394,11 @@ as_define_stack(struct addrspace *as, vaddr_t *stackptr)
  * Initialize a new page table and return it.
  */
 struct pagetable_entry *
-pagetable_create(void) {
+pagetable_create(size_t size) {
     struct pagetable_entry *pt = (struct pagetable_entry *) 
-                                    kmalloc(sizeof(struct pagetable_entry));
+                                 kmalloc(size*sizeof(struct pagetable_entry));
     
-    KASSERT(newpt != NULL);
+    KASSERT(pt != NULL);
     return pt;
 }
 
@@ -338,7 +412,7 @@ pagetable_destroy(struct pagetable_entry *pt) {
     /* Free up each page table entry one by one. */
     pagetable_size = sizeof(pt)/sizeof(pt[0]);
     for(i = 0; i < pagetable_size; i++) {
-        kfree(pt[i]);
+        kfree(&pt[i]);
     }
 }
 
@@ -352,10 +426,63 @@ get_pagetable_entry(struct addrspace *as, vaddr_t vaddr) {
     /* Search for the pagetable_entry with vaddr. */
     pagetable_size = sizeof(as->as_pages)/sizeof(as->as_pages[0]);
     for(i = 0; i < pagetable_size; i++) {
-        if(as->as_pages[i].vaddr == vaddr) {
+        if(as->as_pages[i].pte_vaddr == vaddr) {
             return &as->as_pages[i];
         }
     }
 
     return NULL;
+}
+
+/*
+ * Resize the passed in pagetable. The new page table will have a size equal to
+ * double the old size.
+ */
+struct pagetable_entry* 
+pagetable_resize(struct pagetable_entry *pt, size_t prevSize) {
+    size_t newSize = prevSize*2;
+    size_t i;
+    
+    struct pagetable_entry *newPt = pagetable_create(newSize);
+
+    for(i=0; i<prevSize; i++){
+        newPt[i].pte_permissions = pt[i].pte_permissions;
+        newPt[i].pte_vaddr = pt[i].pte_vaddr;
+        newPt[i].pte_paddr = pt[i].pte_paddr;
+    }
+
+    for(i=prevSize; i<newSize; i++){
+        newPt[i].pte_permissions = 0;
+        newPt[i].pte_vaddr = 0;
+        newPt[i].pte_paddr = 0;
+    }
+
+    return newPt;
+}
+
+/*
+ * Check if the number is a power of two.
+ * Returns: 1 if true
+ *          0 if false
+ */
+int 
+isPowerTwo(size_t num) {
+    int testNum = num&(num-1);
+    
+    if(testNum==0) {
+        return 1;
+    }
+    
+    return 0;
+}
+
+/*
+ * Gets the closest (upper) power of two.
+ * Returns: next power of two
+ */
+size_t 
+getPowerTwo(size_t num) {
+    size_t power = 2;
+    while(num >>= 1) power <<= 1;
+    return power;
 }

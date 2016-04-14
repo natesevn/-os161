@@ -40,6 +40,8 @@
 
 struct vnode;
 
+/* Initalize pagetable with this size, double each the table is full. */
+#define INITIAL_SIZE 64
 struct pagetable_entry {
     int pte_permissions;    /* valid(1), dirty(1), ref(1), protection(3) */
     vaddr_t pte_vaddr;      /* virtual address */
@@ -50,6 +52,7 @@ struct region {
     vaddr_t as_vbase;
     paddr_t as_pbase;
     size_t as_npages;
+    int permissions;
 };
 
 /*
@@ -163,14 +166,22 @@ int load_elf(struct vnode *v, vaddr_t *entrypoint);
 
 /*
  * Helper functions
- *    pagetable_create - initialize page table; called by as_create
+ *    pagetable_create - initialize page table;
  *    pagetable_destroy - free pagetable; called by as_destroy
  *    get_page_table_entry - get the pagetable entry pointer (?)
+ *    pagetable_resize - resize page table;   
+ *  
+ *    isPowerTwo - check if the number is a power of two
+ *    getPowerTwo - get next closest power of two
  */
 
-void pagetable_create(struct pagetable_entry *pt);
+struct pagetable_entry *pagetable_create(size_t size);
 void pagetable_destroy(struct pagetable_entry *pt);
-void get_pagetable_entry(struct addrspace *as, vaddr_t vaddr);
+struct pagetable_entry *
+    get_pagetable_entry(struct addrspace *as, vaddr_t vaddr);
+struct pagetable_entry *
+     pagetable_resize(struct pagetable_entry *pt, size_t prevSize);
 
-
+int isPowerTwo(size_t num);
+size_t getPowerTwo(size_t num);
 #endif /* _ADDRSPACE_H_ */
