@@ -43,7 +43,7 @@ struct vnode;
 /* Initalize pagetable with this size, double each the table is full. */
 #define INITIAL_SIZE 64
 struct pagetable_entry {
-    int pte_permissions;    /* valid(1), dirty(1), ref(1), protection(3) */
+    int pte_permissions;
     vaddr_t pte_vaddr;      /* virtual address */
     paddr_t pte_paddr;      /* physical address */
 };

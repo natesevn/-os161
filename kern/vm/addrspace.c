@@ -250,6 +250,7 @@ as_define_region(struct addrspace *as, vaddr_t vaddr, size_t sz,
  * DUMBVM previously only mapped the first page of each block of allocated 
  * memory. 
  * We change that so that each virtual page is mapped to a physical frame.
+ * Additionally, change the permissions of each page to read/write.
  * Returns: 0 if successful
  *          errno otherwise
  */
@@ -264,6 +265,12 @@ as_prepare_load(struct addrspace *as)
     size_t temp = 0;
     size_t numPages = 0;
     size_t ptSize = 0;
+    
+    /* 
+     * Change permissions to read/write in as_prepare_load. Return them to
+     * original values in as_complete_load which is stored in struct region.
+     */
+    int permissions = 7 & ( 100 | 010 | 000 );
 
     /* Get number of pages from number of regions * size of each region. */
     for(i = 0; i < region_size; i++) {
@@ -322,6 +329,7 @@ as_prepare_load(struct addrspace *as)
             return ENOMEM;
         }
         as->as_pages[k].pte_paddr = paddr;
+        as->as_pages[k].pte_permissions = permissions;
 
         k++;        
         vaddr += PAGE_SIZE;
@@ -335,7 +343,8 @@ as_prepare_load(struct addrspace *as)
                 return ENOMEM;
             }
             as->as_pages[k].pte_paddr = paddr;
-        
+            as->as_pages[k].pte_permissions = permissions;
+
             vaddr += PAGE_SIZE;
             k++;
         }
@@ -368,14 +377,26 @@ as_prepare_load(struct addrspace *as)
 	return 0;
 }
 
+/*
+ * Change all permissions back to its original one (before prepare load changed
+ * them);
+ */
 int
 as_complete_load(struct addrspace *as)
 {
-	/*
-	 * Write this.
-	 */
+    struct region *regionlist = as->regionlist;
+    size_t regionSize = sizeof(regionlist)/sizeof(regionlist[0]);
+    size_t i=0, j=0, k=0;
+    size_t npages;
 
-	(void)as;
+    for(i=0; i<regionSize; i++) {    
+        npages = regionlist[i].as_npages;
+        k=i+j;
+        for(j=0; j<npages; j++) {
+            as->as_pages[k].pte_permissions = regionlist[i].permissions;
+        }
+    }
+    
 	return 0;
 }
 
