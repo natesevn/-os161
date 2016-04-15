@@ -71,19 +71,6 @@ struct addrspace {
     size_t as_npages2;
     paddr_t as_stackpbase;
 #else
-    /* Put stuff here for your VM system */
-//    pagetable_entry *as_stack;      /* stack pagetable binary tree's root */
-//    vaddr_t as_stack_start;         /* starting address of stack */
-//    vaddr_t as_stack_end;           /* ending address of stack */
-
-//    pagetable_entry *as_heap;       /* heap pagetable binary tree's root */
-//    vaddr_t as_heap_start;          /* starting address of heap */
-//    vaddr_t as_heap_end;            /* ending address of heap */
-
-//    pagetable_entry *as_segments;   /* segment pagetable binary tree's root */ 
-//    vaddr_t as_segments_start;      /* starting address of other segments */
-//    vaddr_t as_segments_end;        /* ending address of other segments */
-
     /* DUMBVM assumes user will only ever use 2 regions. We fix that: */
     struct region *regionlist;
 

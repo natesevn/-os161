@@ -43,6 +43,7 @@
 #include <copyinout.h>
 #include <pid.h>
 #include <syscall.h>
+#include <addrspace.h>
 
 /* note that sys_execv is in runprogram.c */
 
@@ -156,4 +157,47 @@ sys_waitpid(pid_t pid, userptr_t retstatus, int flags, pid_t *retval)
 		result = copyout(&status, retstatus, sizeof(int));
 	}
 	return result;
+}
+
+/*
+ * sys_sbrk
+ * retrieve some heap space by changing the value of the heap end.
+ */
+int
+sys_sbrk(intptr_t amount, int *retval)
+{
+    struct addrspace *as = proc_getas();
+    vaddr_t old_heap_end = as->as_heap_end;
+
+    /* If we don't have to adjust anything, just return the heap end. */ 
+    if(amount == 0) {
+        *retval = (int) old_heap_end;
+        return 0;
+    }
+
+    /* If amount is non-zero, perform a check to prevent collisions with
+     * heap's start or stack's end before adjusting the heap's end.
+     */
+    if(amount < 0) {
+        if(as->as_heap_end + amount >= as->as_heap_start) {
+            as->as_heap_end += amount;
+            *retval = (int) old_heap_end;
+            return 0;
+        }
+        
+        return EINVAL;
+    }
+    
+    if(amount > 0) {
+        if(as->as_heap_end + amount <= as->as_stack_end) {
+            as->as_heap_end += amount;
+            *retval = (int) old_heap_end;
+            return 0;
+        }
+
+        return EINVAL;
+    }
+
+    /* It should never reach here, but return an error just in case. */
+    return ENOMEM;
 }
