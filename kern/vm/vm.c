@@ -207,11 +207,16 @@ vm_tlbshootdown(const struct tlbshootdown *ts)
     panic("dumbvm tried to do tlb shootdown?!\n");
 }
 
+/*
+ * Vm_fault is the bridge between userspace and kernel.
+ * Here, we handle page faults and TLB writing.
+ */
 int
 vm_fault(int faulttype, vaddr_t faultaddress)
 {
     struct addrspace *as;
     struct pagetable_entry *faultentry;
+    struct region reg;
     vaddr_t vbase, vtop;
     paddr_t paddr;
     size_t regionSize; 
@@ -236,7 +241,7 @@ vm_fault(int faulttype, vaddr_t faultaddress)
     KASSERT((as->as_stack_end & PAGE_FRAME) == as->as_stack_end);
     KASSERT((as->as_heap_start & PAGE_FRAME) == as->as_heap_start);
     KASSERT((as->as_heap_end & PAGE_FRAME) == as->as_heap_end);
-    //TODO: check vbase, vaddr of pte and regions?
+    //TODO: check vbase, vaddr of pte and regions? 
 
     faultaddress &= PAGE_FRAME;
 
@@ -258,6 +263,7 @@ vm_fault(int faulttype, vaddr_t faultaddress)
     /* Check if the vaddr is valid. */
     regionSize = sizeof(as->regionlist)/sizeof(as->regionlist[0]);
     for(i=0; i<regionSize; i++) {
+        reg = as->regionlist[i];
         vbase = as->regionlist[i].as_vbase;
         vtop = vbase + as->regionlist[i].as_npages;
         
@@ -267,18 +273,17 @@ vm_fault(int faulttype, vaddr_t faultaddress)
     }
     
     /* Return an error if the vaddr is invalid. */
-    //TODO: FIGURE OUT WHICH ERROR
     if (i == regionSize) {
         
         /* Check if its not a stack vaddr. */
         if (faultaddress < as->as_stack_start || 
             faultaddress >= as->as_stack_end) {
-            return ERROR;
+            return EFAULT;
         }
         /* Check if its not a heap vaddr. */
         else if (faultaddress < as->as_heap_start ||
-                 faultaddress >= as_heap_end) {
-            return ERROR;
+                 faultaddress >= as->as_heap_end) {
+            return EFAULT;
         } 
         
     }
@@ -289,12 +294,11 @@ vm_fault(int faulttype, vaddr_t faultaddress)
     /* PAGE FAULT if NULL. */
     if (faultentry == NULL) {
         /* Create new pte for this vaddr. */   
-        //TODO: get permissions from correct region.
-        int permissions = 0;    
+        int permissions = reg.permissions;    
         size_t ptSize = sizeof(as->as_pages)/sizeof(as->as_pages[0]);
 
         paddr = getppages(1);
-        if(paddr == NULL) {
+        if(paddr == 0) {
             return ENOMEM;
         }
 
@@ -310,15 +314,14 @@ vm_fault(int faulttype, vaddr_t faultaddress)
         }
         
         /* Fill in page table entry. */
-        as->as_pages[ptSize].pte_vaddr = faultaddr;
+        as->as_pages[ptSize].pte_vaddr = faultaddress;
         as->as_pages[ptSize].pte_paddr = paddr;
-        as->as_pages[ptSize].permissions = permissions;
+        as->as_pages[ptSize].pte_permissions = permissions;
     }
 
-    /* Write a valid tlb entry to the TLB table. */
-    
-
-    /* Disable interrupts on this CPU while frobbing the TLB. */
+    /* Write a valid tlb entry to the TLB table.
+     * Disable interrupts on this CPU while frobbing the TLB.
+     */
     spl = splhigh();
 
     for (i=0; i<NUM_TLB; i++) {
@@ -328,13 +331,12 @@ vm_fault(int faulttype, vaddr_t faultaddress)
         }
         ehi = faultaddress;
         elo = paddr | TLBLO_DIRTY | TLBLO_VALID;
-        DEBUG(DB_VM, "dumbvm: 0x%x -> 0x%x\n", faultaddress, paddr);
         tlb_write(ehi, elo, i);
         splx(spl);
         return 0;
     }
 
-    kprintf("dumbvm: Ran out of TLB entries - cannot handle page fault\n");
+    kprintf("Ran out of TLB entries - cannot handle page fault\n");
     splx(spl);
     return EFAULT;
 }

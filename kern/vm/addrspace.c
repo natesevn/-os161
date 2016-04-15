@@ -156,7 +156,7 @@ as_activate(void)
 {
 	/* Disable interrupts on this CPU and shoot down the tlb entries. */
 	int spl = splhigh();
-    vm_tlbshootdown_all();
+    //vm_tlbshootdown_all();
 	splx(spl);
 }
 
